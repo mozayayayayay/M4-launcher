@@ -70,7 +70,7 @@ type ConsoleEntry = {
   receivedAt: number;
 };
 
-type Page = "Home" | "Mods" | "Modpacks" | "Console" | "Settings" | "Accounts";
+type Page = "Home" | "Mods" | "Modpacks" | "Updates" | "Console" | "Settings" | "Accounts";
 
 type LauncherRelease = {
   tag_name: string;
@@ -877,7 +877,7 @@ export default function App() {
         </div>
 
         <nav className="top-nav">
-          {(["Home", "Mods", "Modpacks", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
+          {(["Home", "Mods", "Modpacks", "Updates", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
             <button
               key={item}
               className={`nav-item ${page === item ? "active" : ""}`}
@@ -890,6 +890,7 @@ export default function App() {
               {item === "Home" && <Home size={16} />}
               {item === "Mods" && <Library size={16} />}
               {item === "Modpacks" && <Package size={16} />}
+              {item === "Updates" && <RefreshCw size={16} />}
               {item === "Console" && <Terminal size={16} />}
               {item === "Settings" && <Settings size={16} />}
               {item === "Accounts" && <UserRound size={16} />}
@@ -898,39 +899,6 @@ export default function App() {
           ))}
         </nav>
       </header>
-
-      <section
-        aria-label="Launcher updates"
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          gap: 14, flexWrap: "wrap", padding: "10px 22px",
-          borderBottom: "1px solid var(--border-color, rgba(255,255,255,0.1))",
-          background: "var(--panel-bg, rgba(20,20,30,0.42))"
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <div style={{ display: "grid", gap: 2 }}>
-            <strong style={{ fontSize: 13 }}>Updates</strong>
-            <small style={{ opacity: 0.72 }}>
-              M4 v{LAUNCHER_VERSION}
-              {isUpdateAvailable && releaseInfo
-                ? ` · v${releaseInfo.tag_name.replace(/^v/, "")} available`
-                : " · " + (updateChecking ? "Checking for updates…" : updateCheckError || (releaseInfo ? "You're up to date." : "Checking for updates…"))}
-            </small>
-          </div>
-          {isUpdateAvailable && releaseInfo && <span className="eyebrow">UPDATE AVAILABLE</span>}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button className="secondary-button" onClick={() => void checkForLauncherUpdates()} disabled={updateChecking}>
-            <RefreshCw size={14} /> {updateChecking ? "Checking…" : "Check"}
-          </button>
-          {isUpdateAvailable && releaseInfo && (
-            <a className="primary-button" href={releaseInfo.html_url} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
-              <ExternalLink size={14} /> View update
-            </a>
-          )}
-        </div>
-      </section>
 
       <div className="workspace">
         <aside className={`instance-rail ${collapsed ? "collapsed" : ""}`}>
@@ -1190,6 +1158,58 @@ export default function App() {
                   </>
                 )}
               </>
+            )}
+
+            {page === "Updates" && (
+              <div className="utility-page-scroll" style={{ height: "100%", minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
+                <div className="page-heading">
+                  <div>
+                    <div className="eyebrow">M4 LAUNCHER</div>
+                    <h1>Updates</h1>
+                    <p>Check for new M4 Launcher versions and read what's changed.</p>
+                  </div>
+                  <button className="secondary-button" onClick={() => void checkForLauncherUpdates()} disabled={updateChecking}>
+                    <RefreshCw size={15} className={updateChecking ? "spin" : ""} /> {updateChecking ? "Checking…" : "Check for updates"}
+                  </button>
+                </div>
+
+                <div className="info-card" style={{ marginTop: 18 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div className="eyebrow">INSTALLED VERSION</div>
+                      <h2 style={{ margin: "6px 0 0" }}>M4 v{LAUNCHER_VERSION}</h2>
+                    </div>
+                    {isUpdateAvailable
+                      ? <span className="eyebrow">UPDATE AVAILABLE</span>
+                      : <span className="eyebrow">{updateChecking ? "CHECKING…" : releaseInfo ? "UP TO DATE" : "STATUS UNKNOWN"}</span>}
+                  </div>
+                  <p style={{ marginBottom: 0 }}>
+                    {isUpdateAvailable && releaseInfo
+                      ? `Version ${releaseInfo.tag_name.replace(/^v/, "")} is available.`
+                      : updateChecking
+                        ? "Checking GitHub for the latest release…"
+                        : updateCheckError || (releaseInfo ? "You're using the latest available version." : "Check GitHub for the latest M4 release.")}
+                  </p>
+                  {isUpdateAvailable && releaseInfo && (
+                    <a className="primary-button" href={releaseInfo.html_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 16, textDecoration: "none" }}>
+                      <ExternalLink size={15} /> View and download update
+                    </a>
+                  )}
+                </div>
+
+                {releaseInfo && (
+                  <div className="info-card" style={{ marginTop: 14 }}>
+                    <div className="eyebrow">LATEST RELEASE · {releaseInfo.tag_name}</div>
+                    <h2 style={{ marginTop: 8 }}>{releaseInfo.name || releaseInfo.tag_name}</h2>
+                    {releaseInfo.body
+                      ? <pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", font: "inherit", lineHeight: 1.6 }}>{releaseInfo.body}</pre>
+                      : <p>No release notes were provided for this version.</p>}
+                    <a href={releaseInfo.html_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      Open release on GitHub <ExternalLink size={14} />
+                    </a>
+                  </div>
+                )}
+              </div>
             )}
 
             {(page === "Mods" || page === "Modpacks") && (
