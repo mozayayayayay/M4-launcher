@@ -3,6 +3,8 @@ name: Build M4 installers
 on:
   workflow_dispatch:
   push:
+    branches:
+      - fix/automatic-java-runtime
     tags:
       - "v*"
 
@@ -76,6 +78,7 @@ jobs:
           if-no-files-found: error
 
   publish:
+    if: startsWith(github.ref, 'refs/tags/v')
     name: Publish GitHub release
     needs: [linux, windows]
     runs-on: ubuntu-latest
