@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import {
   ChevronLeft, ChevronRight, Cpu, Gamepad2, Layers3, Home,
   Library, Plus, Settings, UserRound, X,
-  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash
+  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, RefreshCw, ExternalLink
 } from "lucide-react";
 
 import SettingsPage from "./SettingsPage";
@@ -71,6 +71,16 @@ type ConsoleEntry = {
 };
 
 type Page = "Home" | "Mods" | "Modpacks" | "Console" | "Settings" | "Accounts";
+
+type LauncherRelease = {
+  tag_name: string;
+  name?: string;
+  html_url: string;
+  body?: string;
+};
+
+const LAUNCHER_VERSION = "0.1.0";
+const RELEASES_API = "https://api.github.com/repos/mozayayayayay/M4-launcher/releases/latest";
 
 const MOD_CATEGORIES = [
   ["adventure", "Adventure"],
@@ -149,6 +159,47 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [releaseInfo, setReleaseInfo] = useState<LauncherRelease | null>(null);
+  const [updateChecking, setUpdateChecking] = useState(false);
+  const [updateCheckError, setUpdateCheckError] = useState("");
+
+  async function checkForLauncherUpdates() {
+    setUpdateChecking(true);
+    setUpdateCheckError("");
+    try {
+      const response = await fetch(RELEASES_API, {
+        headers: { Accept: "application/vnd.github+json" },
+        cache: "no-store"
+      });
+      if (response.status === 404) {
+        setReleaseInfo(null);
+        setUpdateCheckError("You're on the latest version. No public release has been published yet.");
+        return;
+      }
+      if (!response.ok) throw new Error(`GitHub returned HTTP ${response.status}`);
+      const release = await response.json() as LauncherRelease;
+      setReleaseInfo(release);
+    } catch (error) {
+      setUpdateCheckError(`Couldn't check for updates: ${String(error)}`);
+    } finally {
+      setUpdateChecking(false);
+    }
+  }
+
+  const isUpdateAvailable = Boolean(releaseInfo?.tag_name && (() => {
+    const current = LAUNCHER_VERSION.replace(/^v/, "").split(".").map(Number);
+    const latest = releaseInfo.tag_name.replace(/^v/, "").split(".").map(Number);
+    for (let i = 0; i < Math.max(current.length, latest.length); i++) {
+      const a = current[i] ?? 0;
+      const b = latest[i] ?? 0;
+      if (b !== a) return b > a;
+    }
+    return false;
+  })());
+
+  useEffect(() => {
+    void checkForLauncherUpdates();
+  }, []);
 
   const selected = useMemo(() => {
     const instance = instances.find(
