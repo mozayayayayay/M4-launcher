@@ -897,6 +897,9 @@ fn required_java_major(version_json: &Value, minecraft_version: &str) -> u32 {
         else if minor < 20 || (minor == 20 && patch < 5) { 17 }
         else if minor == 20 { 21 }
         else { 25 }
+    } else if parts.first().is_some_and(|major| *major >= 26) {
+        // Minecraft's post-1.x version scheme (for example 26.2) uses Java 25.
+        25
     } else {
         21
     }
