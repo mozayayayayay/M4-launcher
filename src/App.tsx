@@ -899,6 +899,39 @@ export default function App() {
         </nav>
       </header>
 
+      <section
+        aria-label="Launcher updates"
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 14, flexWrap: "wrap", padding: "10px 22px",
+          borderBottom: "1px solid var(--border-color, rgba(255,255,255,0.1))",
+          background: "var(--panel-bg, rgba(20,20,30,0.42))"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <div style={{ display: "grid", gap: 2 }}>
+            <strong style={{ fontSize: 13 }}>Updates</strong>
+            <small style={{ opacity: 0.72 }}>
+              M4 v{LAUNCHER_VERSION}
+              {isUpdateAvailable && releaseInfo
+                ? ` · v${releaseInfo.tag_name.replace(/^v/, "")} available`
+                : " · " + (updateChecking ? "Checking for updates…" : updateCheckError || (releaseInfo ? "You're up to date." : "Checking for updates…"))}
+            </small>
+          </div>
+          {isUpdateAvailable && releaseInfo && <span className="eyebrow">UPDATE AVAILABLE</span>}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button className="secondary-button" onClick={() => void checkForLauncherUpdates()} disabled={updateChecking}>
+            <RefreshCw size={14} /> {updateChecking ? "Checking…" : "Check"}
+          </button>
+          {isUpdateAvailable && releaseInfo && (
+            <a className="primary-button" href={releaseInfo.html_url} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+              <ExternalLink size={14} /> View update
+            </a>
+          )}
+        </div>
+      </section>
+
       <div className="workspace">
         <aside className={`instance-rail ${collapsed ? "collapsed" : ""}`}>
           <div className="rail-heading">
