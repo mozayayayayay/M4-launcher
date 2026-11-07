@@ -2320,6 +2320,61 @@ fn get_installed_mods(
 
 
 // --------------------------------------------------
+// Launcher self-update handoff
+// --------------------------------------------------
+
+#[tauri::command]
+async fn install_launcher_update(app: AppHandle, asset_url: String) -> Result<(), String> {
+    let is_windows = cfg!(target_os = "windows");
+    let is_linux = cfg!(target_os = "linux");
+    let expected_suffix = if is_windows { "-setup.exe" } else if is_linux { ".deb" } else {
+        return Err("In-app updates are currently supported on Windows and Linux.".into());
+    };
+    let allowed_prefix = "https://github.com/mozayayayayay/M4-launcher/releases/download/";
+    if !asset_url.starts_with(allowed_prefix) || !asset_url.to_ascii_lowercase().ends_with(expected_suffix) {
+        return Err("The update download URL is not a valid M4 installer.".into());
+    }
+
+    let client = reqwest::Client::builder()
+        .user_agent("M4-Launcher-Updater/0.1.1")
+        .redirect(reqwest::redirect::Policy::limited(10))
+        .build().map_err(|e| e.to_string())?;
+    let response = client.get(&asset_url).send().await.map_err(|e| e.to_string())?
+        .error_for_status().map_err(|e| e.to_string())?;
+    if response.content_length().is_some_and(|length| length > 300 * 1024 * 1024) {
+        return Err("The installer is larger than the 300 MB safety limit.".into());
+    }
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+    if bytes.len() > 300 * 1024 * 1024 {
+        return Err("The installer is larger than the 300 MB safety limit.".into());
+    }
+
+    let cache_dir = app.path().app_cache_dir().map_err(|e| e.to_string())?;
+    fs::create_dir_all(&cache_dir).map_err(|e| e.to_string())?;
+    let file_name = if is_windows { "M4-update-setup.exe" } else { "M4-update.deb" };
+    let installer_path = cache_dir.join(file_name);
+    fs::write(&installer_path, bytes).map_err(|e| e.to_string())?;
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new(&installer_path)
+            .arg("/S")
+            .spawn()
+            .map_err(|e| format!("Couldn't start the Windows installer: {e}"))?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        Command::new("xdg-open")
+            .arg(&installer_path)
+            .spawn()
+            .map_err(|e| format!("Couldn't open the Linux package installer: {e}"))?;
+    }
+
+    app.exit(0);
+    Ok(())
+}
+
+// --------------------------------------------------
 // Tauri application
 // --------------------------------------------------
 
@@ -2347,6 +2402,7 @@ pub fn run() {
             get_installed_modpack,
             remove_mod,
             get_installed_mods,
+            install_launcher_update,
 
             // Settings and accounts
             settings_accounts::get_launcher_settings,
