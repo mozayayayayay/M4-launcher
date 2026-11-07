@@ -3,14 +3,11 @@ name: Build M4 installers
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - fix/automatic-java-runtime
     tags:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   linux:
@@ -77,3 +74,25 @@ jobs:
           name: M4-Windows-Setup
           path: src-tauri/target/release/bundle/nsis/*-setup.exe
           if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux installer
+        uses: actions/download-artifact@v4
+        with:
+          name: M4-Linux-deb
+          path: release-assets
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: M4-Windows-Setup
+          path: release-assets
+      - name: Publish release and installers
+        uses: softprops/action-gh-release@v2
+        with:
+          name: M4 Launcher ${{ github.ref_name }}
+          generate_release_notes: true
+          files: release-assets/*
