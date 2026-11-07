@@ -77,9 +77,10 @@ type LauncherRelease = {
   name?: string;
   html_url: string;
   body?: string;
+  assets?: { name: string; browser_download_url: string }[];
 };
 
-const LAUNCHER_VERSION = "0.1.0";
+const LAUNCHER_VERSION = "0.1.1";
 const RELEASES_API = "https://api.github.com/repos/mozayayayayay/M4-launcher/releases/latest";
 
 const MOD_CATEGORIES = [
@@ -162,6 +163,7 @@ export default function App() {
   const [releaseInfo, setReleaseInfo] = useState<LauncherRelease | null>(null);
   const [updateChecking, setUpdateChecking] = useState(false);
   const [updateCheckError, setUpdateCheckError] = useState("");
+  const [updateInstalling, setUpdateInstalling] = useState(false);
 
   async function checkForLauncherUpdates() {
     setUpdateChecking(true);
@@ -220,9 +222,14 @@ export default function App() {
       selectedInstance: string | null;
     }>("get_instances");
 
-    setInstances(data.instances ?? []);
-    setSelectedId(
-      data.selectedInstance ?? data.instances?.[0]?.id ?? null
+    const nextInstances = data.instances ?? [];
+    setInstances(nextInstances);
+    setSelectedId((currentId) =>
+      currentId && nextInstances.some((instance) => instance.id === currentId)
+        ? currentId
+        : data.selectedInstance && nextInstances.some((instance) => instance.id === data.selectedInstance)
+          ? data.selectedInstance
+          : nextInstances[0]?.id ?? null
     );
   }
 
@@ -743,25 +750,31 @@ export default function App() {
       setNotice("Select your instance's Minecraft version before installing a mod.");
       return;
     }
+    const installInstanceId = selected.id;
+    const installPage = page;
     setBusy(true);
     try {
-      if (page === "Modpacks") {
+      if (installPage === "Modpacks") {
         const metadata = await invoke<Record<string, any>>("install_modrinth_modpack", {
-          instanceId: selected.id,
+          instanceId: installInstanceId,
           projectId: selectedProject.projectId,
           versionId: selectedProjectVersion
         });
         setInstalledModpack(metadata);
         await refreshInstances();
-        await refreshInstalledMods(selected.id);
+        setSelectedId(installInstanceId);
+        setPage(installPage);
+        await refreshInstalledMods(installInstanceId);
         setNotice(`Installed modpack: ${metadata.name ?? selectedProject.title}`);
       } else {
         const files = await invoke<string[]>("install_modrinth_mod_version", {
-          instanceId: selected.id,
+          instanceId: installInstanceId,
           versionId: selectedProjectVersion
         });
-        await refreshInstalledMods(selected.id);
+        await refreshInstalledMods(installInstanceId);
         await refreshInstances();
+        setSelectedId(installInstanceId);
+        setPage(installPage);
         setNotice(`Installed ${files.length} mod file(s), including required dependencies.`);
       }
       setSelectedProject(null);
@@ -1191,9 +1204,32 @@ export default function App() {
                         : updateCheckError || (releaseInfo ? "You're using the latest available version." : "Check GitHub for the latest M4 release.")}
                   </p>
                   {isUpdateAvailable && releaseInfo && (
-                    <a className="primary-button" href={releaseInfo.html_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 16, textDecoration: "none" }}>
-                      <ExternalLink size={15} /> View and download update
-                    </a>
+                    <button
+                      className="primary-button"
+                      disabled={updateInstalling}
+                      onClick={async () => {
+                        const isWindows = /Windows/i.test(navigator.userAgent);
+                        const asset = releaseInfo.assets?.find((item) =>
+                          isWindows ? item.name.toLowerCase().endsWith("-setup.exe") : item.name.toLowerCase().endsWith(".deb")
+                        );
+                        if (!asset) {
+                          setUpdateCheckError(isWindows
+                            ? "This release does not include a Windows setup installer."
+                            : "This release does not include a Linux .deb installer.");
+                          return;
+                        }
+                        setUpdateInstalling(true);
+                        try {
+                          await invoke("install_launcher_update", { assetUrl: asset.browser_download_url });
+                        } catch (error) {
+                          setUpdateCheckError(`Couldn't start the update: ${String(error)}`);
+                          setUpdateInstalling(false);
+                        }
+                      }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 16 }}
+                    >
+                      <Download size={15} /> {updateInstalling ? "Preparing update…" : "Download & install update"}
+                    </button>
                   )}
                 </div>
 
