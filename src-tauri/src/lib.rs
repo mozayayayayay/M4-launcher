@@ -997,6 +997,7 @@ async fn resolve_java_runtime(
     version_json: &Value,
     minecraft_version: &str,
     preferred: Option<&str>,
+    instance_id: &str,
 ) -> Result<PathBuf, String> {
     let required = required_java_major(version_json, minecraft_version);
 
@@ -1024,7 +1025,7 @@ async fn resolve_java_runtime(
         }
     }
 
-    emit_progress(app, "", 0, 1, format!("Downloading Java {required} runtime"));
+    emit_progress(app, instance_id, 0, 1, format!("Downloading Java {required} runtime"));
     fs::create_dir_all(&runtime_dir).map_err(|e| format!("Could not create Java runtime directory: {e}"))?;
 
     let extension = if cfg!(windows) { "zip" } else { "tar.gz" };
@@ -1040,7 +1041,7 @@ async fn resolve_java_runtime(
     tokio::fs::write(&archive_path, &bytes).await
         .map_err(|e| format!("Could not save Java {required} runtime: {e}"))?;
 
-    emit_progress(app, "", 0, 1, format!("Extracting Java {required} runtime"));
+    emit_progress(app, instance_id, 0, 1, format!("Extracting Java {required} runtime"));
     #[cfg(target_os = "windows")]
     {
         let file = fs::File::open(&archive_path).map_err(|e| e.to_string())?;
@@ -1511,6 +1512,7 @@ async fn install_modloader(
             &base_json,
             &instance.version,
             preferred_java,
+            &instance_id,
         ).await?;
         emit_progress(&app, &instance_id, 2, 4, format!("Running {loader_key} installer"));
         let output = Command::new(&java).arg("-jar").arg(&installer_path).arg("--installClient").arg(&game_dir)
@@ -1624,6 +1626,7 @@ async fn launch_minecraft(
         &version_json,
         &instance.version,
         preferred_java,
+        &id,
     ).await?;
 
     emit_progress(&app, &id, 0, 1, "Preparing Minecraft libraries");
