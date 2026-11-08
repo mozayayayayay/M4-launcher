@@ -1494,7 +1494,7 @@ export default function App() {
 
             {page === "Updates" && (
               <div className="utility-page-scroll" style={{ height: "100%", minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
-                <UpdatesPage />
+                <UpdatesPage onProgress={(value) => setProgress(value)} onNotice={setNotice} />
               </div>
             )}
 
