@@ -1,0 +1,82 @@
+name: Build installers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/build-installers.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: m0z4-installer-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux DEB
+            platform: ubuntu-24.04
+            args: --bundles deb
+          - name: Windows setup
+            platform: windows-latest
+            args: --bundles nsis
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            curl \
+            file \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            patchelf
+
+      - name: Install NSIS
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Build and publish installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: M0Z4 Launcher v__VERSION__
+          releaseBody: |
+            M0Z4 Launcher release.
+
+            Choose the Linux .deb package or the Windows NSIS setup.exe installer below.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
