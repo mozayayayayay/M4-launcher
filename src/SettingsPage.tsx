@@ -17,6 +17,7 @@ type LauncherSettings = {
   fullscreen: boolean;
   theme: "galaxy" | "dark" | "snowy";
   accentColor: string;
+  language: "en" | "ar";
 };
 
 type Props = {
@@ -32,6 +33,7 @@ const defaults: LauncherSettings = {
   fullscreen: false,
   theme: "galaxy",
   accentColor: "#9B8CFF",
+  language: "en",
 };
 
 const optionLabels: Record<string, string> = {
@@ -112,6 +114,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
       settings.accentColor
     );
     document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.dataset.language = settings.language;
   }, [settings.accentColor, settings.theme]);
 
   useEffect(() => {
@@ -328,6 +331,15 @@ export default function SettingsPage({ selected, onNotice }: Props) {
           </div>
 
           <div className="info-card settings-card">
+            <label>
+              Language
+              <select value={settings.language} onChange={(event) => updateSetting("language", event.target.value as LauncherSettings["language"])}>
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+              </select>
+              <small>Choose the language used throughout M0Z4.</small>
+            </label>
+
             <label>
               Theme
               <select
