@@ -60,6 +60,17 @@ jobs:
         shell: pwsh
         run: choco install nsis -y --no-progress
 
+      - name: Validate updater signing keys
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          M0Z4_UPDATER_PUBLIC_KEY: ${{ vars.M0Z4_UPDATER_PUBLIC_KEY }}
+        run: |
+          if [[ -z "${TAURI_SIGNING_PRIVATE_KEY}" || -z "${M0Z4_UPDATER_PUBLIC_KEY}" ]]; then
+            echo "::error::Configure TAURI_SIGNING_PRIVATE_KEY as a repository Actions secret and M0Z4_UPDATER_PUBLIC_KEY as a repository Actions variable before building signed updates."
+            exit 1
+          fi
+
       - name: Install JavaScript dependencies
         run: npm install
 
