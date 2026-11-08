@@ -10,6 +10,7 @@ import {
 
 import SettingsPage from "./SettingsPage";
 import AccountsPage from "./AccountsPage";
+import { installLocalization } from "./i18n";
 
 type Instance = {
   id: string;
@@ -196,12 +197,14 @@ export default function App() {
   }
 
   useEffect(() => {
+    const stopLocalization = installLocalization();
     let active = true;
 
-    invoke<{ theme?: string; accentColor?: string }>("get_launcher_settings")
+    invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
         document.documentElement.dataset.theme = settings.theme === "light" ? "snowy" : settings.theme ?? "galaxy";
+        document.documentElement.dataset.language = settings.language === "ar" ? "ar" : "en";
         document.documentElement.style.setProperty(
           "--accent-color",
           settings.accentColor ?? "#9B8CFF"
@@ -213,6 +216,7 @@ export default function App() {
 
     return () => {
       active = false;
+      stopLocalization();
     };
   }, []);
 
