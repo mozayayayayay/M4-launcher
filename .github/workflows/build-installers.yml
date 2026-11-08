@@ -1,4 +1,4 @@
-name: Build installers
+name: Build installers # v0.1.3 source-complete rebuild
 
 on:
   push:
