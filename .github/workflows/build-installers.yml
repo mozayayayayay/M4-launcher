@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - .github/workflows/build-installers.yml
+      - package.json
+      - src-tauri/tauri.conf.json
+      - src-tauri/Cargo.toml
   workflow_dispatch:
 
 permissions:
