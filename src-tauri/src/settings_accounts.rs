@@ -46,6 +46,7 @@ pub struct LauncherSettings {
     pub fullscreen: bool,
     pub theme: String,
     pub accent_color: String,
+    pub language: String,
 }
 
 impl Default for LauncherSettings {
@@ -58,6 +59,7 @@ impl Default for LauncherSettings {
             fullscreen: false,
             theme: "galaxy".into(),
             accent_color: "#9B8CFF".into(),
+            language: "en".into(),
         }
     }
 }
@@ -85,6 +87,10 @@ pub fn save_launcher_settings(
 
     if !["galaxy", "dark", "snowy"].contains(&settings.theme.as_str()) {
         return Err("Invalid launcher theme.".into());
+    }
+
+    if !["en", "ar"].contains(&settings.language.as_str()) {
+        return Err("Invalid launcher language.".into());
     }
 
     let color = settings.accent_color.trim();
