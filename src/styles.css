@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap");
 
 @font-face {
   font-family: "Minecraft";
@@ -2339,3 +2340,19 @@ p, span, strong, small, label {
   border-color: #b8e1eb;
   background: #e6f5f9;
 }
+
+
+/* Cleaner, consistent selection controls */
+.app-shell select { appearance:none; -webkit-appearance:none; min-height:36px; padding:8px 38px 8px 12px; border:1px solid #ffffff20; border-radius:10px; outline:none; background-color:#11162a; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23aeb9d8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; color:#e1e5fa; box-shadow:inset 0 1px 0 #ffffff08,0 2px 8px #00000012; transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease; cursor:pointer; }
+.app-shell select:hover { border-color:color-mix(in srgb,var(--accent-color) 55%,#ffffff22); background-color:#171d35; }
+.app-shell select:focus-visible { border-color:var(--accent-color); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-color) 22%,transparent); }
+.app-shell select option { padding:9px 12px; background:#11162a; color:#e1e5fa; }
+:root[data-theme="snowy"] .app-shell select { color:#087f9d !important; background-color:#fff !important; border:1px solid #b8e1eb !important; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23087f9d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+:root[data-theme="snowy"] .app-shell select option { background:#fff; color:#087f9d; }
+:root[data-language="ar"] { font-family:"Noto Sans Arabic","Noto Naskh Arabic",Tahoma,Arial,sans-serif; }
+:root[data-language="ar"] *, :root[data-language="ar"] *::before, :root[data-language="ar"] *::after { font-family:"Noto Sans Arabic","Noto Naskh Arabic",Tahoma,Arial,sans-serif !important; }
+:root[data-language="ar"] .app-shell { direction:rtl; }
+:root[data-language="ar"] .instance-rail { border-right:0; border-left:1px solid #ffffff14; }
+:root[data-language="ar"] .rail-heading, :root[data-language="ar"] .instance-item, :root[data-language="ar"] .settings-card label { text-align:right; }
+:root[data-language="ar"] .app-shell select { direction:rtl; text-align:right; padding:8px 12px 8px 38px; background-position:left 12px center; }
+:root[data-language="ar"] input, :root[data-language="ar"] textarea { direction:rtl; text-align:right; }
