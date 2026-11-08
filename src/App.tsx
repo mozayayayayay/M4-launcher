@@ -80,7 +80,7 @@ type LauncherRelease = {
   assets?: { name: string; browser_download_url: string }[];
 };
 
-const LAUNCHER_VERSION = "0.1.1";
+const LAUNCHER_VERSION = "0.1.3";
 const RELEASES_API = "https://api.github.com/repos/mozayayayayay/M4-launcher/releases/latest";
 
 const MOD_CATEGORIES = [
