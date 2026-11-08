@@ -115,7 +115,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
     );
     document.documentElement.dataset.theme = settings.theme;
     document.documentElement.dataset.language = settings.language;
-  }, [settings.accentColor, settings.theme]);
+  }, [settings.accentColor, settings.theme, settings.language]);
 
   useEffect(() => {
     let active = true;
