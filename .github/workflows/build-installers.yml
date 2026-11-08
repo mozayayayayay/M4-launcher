@@ -1,4 +1,4 @@
-name: Build installers # v0.1.3 source-complete rebuild
+name: Build installers and publish updater manifest
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     paths:
       - .github/workflows/build-installers.yml
       - package.json
-      - src-tauri/tauri.conf.json
-      - src-tauri/Cargo.toml
+      - src/**
+      - src-tauri/**
   workflow_dispatch:
 
 permissions:
@@ -52,14 +52,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            curl \
-            file \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libwebkit2gtk-4.1-dev \
-            patchelf
+            build-essential curl file libayatana-appindicator3-dev \
+            librsvg2-dev libssl-dev libwebkit2gtk-4.1-dev patchelf
 
       - name: Install NSIS
         if: runner.os == 'Windows'
@@ -67,12 +61,15 @@ jobs:
         run: choco install nsis -y --no-progress
 
       - name: Install JavaScript dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build and publish installer
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          M0Z4_UPDATER_PUBLIC_KEY: ${{ vars.M0Z4_UPDATER_PUBLIC_KEY }}
         with:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
@@ -80,6 +77,49 @@ jobs:
             M0Z4 Launcher release.
 
             Choose the Linux .deb package or the Windows NSIS setup.exe installer below.
+            Signed update packages and latest.json enable one-click in-app updates.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  publish-updater-manifest:
+    name: Publish signed updater manifest
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Create latest.json from both signed release packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          tag="v${version}"
+          release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}")"
+          deb_name="$(printf '%s' "${release_json}" | jq -r '[.assets[].name | select(endswith(".deb"))][0] // empty')"
+          exe_name="$(printf '%s' "${release_json}" | jq -r '[.assets[].name | select(endswith(".exe"))][0] // empty')"
+          if [[ -z "${deb_name}" || -z "${exe_name}" ]]; then
+            echo "Expected signed .deb and .exe release assets were not found."
+            exit 1
+          fi
+          deb_sig_name="${deb_name}.sig"
+          exe_sig_name="${exe_name}.sig"
+          gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" --pattern "${deb_sig_name}" --dir updater-assets
+          gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" --pattern "${exe_sig_name}" --dir updater-assets
+          deb_url="$(printf '%s' "${release_json}" | jq -r --arg n "${deb_name}" '.assets[] | select(.name == $n) | .browser_download_url')"
+          exe_url="$(printf '%s' "${release_json}" | jq -r --arg n "${exe_name}" '.assets[] | select(.name == $n) | .browser_download_url')"
+          notes="$(printf '%s' "${release_json}" | jq -r '.body // ""')"
+          pub_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n \
+            --arg version "${version}" \
+            --arg notes "${notes}" \
+            --arg pub_date "${pub_date}" \
+            --arg deb_url "${deb_url}" \
+            --arg deb_sig "$(cat "updater-assets/${deb_sig_name}")" \
+            --arg exe_url "${exe_url}" \
+            --arg exe_sig "$(cat "updater-assets/${exe_sig_name}")" \
+            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"linux-x86_64-deb":{url:$deb_url,signature:$deb_sig},"windows-x86_64-nsis":{url:$exe_url,signature:$exe_sig}}}' > latest.json
+          gh release upload "${tag}" latest.json --repo "${GITHUB_REPOSITORY}" --clobber
