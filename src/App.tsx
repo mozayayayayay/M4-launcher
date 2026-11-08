@@ -10,6 +10,7 @@ import {
 
 import SettingsPage from "./SettingsPage";
 import AccountsPage from "./AccountsPage";
+import UpdatesPage from "./UpdatesPage";
 import { installLocalization } from "./i18n";
 
 type Instance = {
@@ -71,7 +72,7 @@ type ConsoleEntry = {
   receivedAt: number;
 };
 
-type Page = "Home" | "Mods" | "Modpacks" | "Console" | "Settings" | "Accounts";
+type Page = "Home" | "Mods" | "Modpacks" | "Console" | "Settings" | "Accounts" | "Updates";
 
 const MOD_CATEGORIES = [
   ["adventure", "Adventure"],
@@ -830,7 +831,7 @@ export default function App() {
         </div>
 
         <nav className="top-nav">
-          {(["Home", "Mods", "Modpacks", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
+          {(["Home", "Mods", "Modpacks", "Updates", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
             <button
               key={item}
               className={`nav-item ${page === item ? "active" : ""}`}
@@ -843,6 +844,7 @@ export default function App() {
               {item === "Home" && <Home size={16} />}
               {item === "Mods" && <Library size={16} />}
               {item === "Modpacks" && <Package size={16} />}
+              {item === "Updates" && <Download size={16} />}
               {item === "Console" && <Terminal size={16} />}
               {item === "Settings" && <Settings size={16} />}
               {item === "Accounts" && <UserRound size={16} />}
@@ -1487,6 +1489,12 @@ export default function App() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {page === "Updates" && (
+              <div className="utility-page-scroll" style={{ height: "100%", minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
+                <UpdatesPage />
               </div>
             )}
 
