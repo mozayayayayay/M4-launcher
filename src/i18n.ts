@@ -165,6 +165,21 @@ const translations: Record<string, string> = {
   "Select version": "اختيار الإصدار",
   "Choose a version": "اختر إصدارًا",
   "No results found": "لم يتم العثور على نتائج",
+  "Updates": "التحديثات",
+  "M0Z4 Launcher updates": "تحديثات مشغّل M0Z4",
+  "Check for the latest launcher release and download the installer for your system.": "تحقق من أحدث إصدار للمشغّل ونزّل ملف التثبيت المناسب لنظامك.",
+  "Checking for updates…": "جارٍ التحقق من التحديثات…",
+  "You are using the latest version.": "أنت تستخدم أحدث إصدار.",
+  "A new version is available.": "يتوفر إصدار جديد.",
+  "Current version": "الإصدار الحالي",
+  "Latest version": "أحدث إصدار",
+  "Check again": "تحقق مرة أخرى",
+  "Download Linux installer (.deb)": "تنزيل مثبت Linux (.deb)",
+  "Download Windows installer (.exe)": "تنزيل مثبت Windows (.exe)",
+  "Release notes": "ملاحظات الإصدار",
+  "No installer for this platform was attached to the latest release.": "لم يتم إرفاق ملف تثبيت لهذا النظام في أحدث إصدار.",
+  "Could not check for updates. Check your internet connection and try again.": "تعذر التحقق من التحديثات. تحقق من اتصال الإنترنت وحاول مرة أخرى.",
+  "Update downloads open the official GitHub release page. Close M0Z4 before running the installer.": "تُفتح التنزيلات من صفحة الإصدار الرسمية على GitHub. أغلق M0Z4 قبل تشغيل ملف التثبيت.",
 };
 type SavedText = { original: string; applied: string };
 const savedText = new WeakMap<Text, SavedText>();
