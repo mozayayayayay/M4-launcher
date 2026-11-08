@@ -32,14 +32,18 @@ For a local Tauri build, install the Tauri 2 prerequisites for your operating sy
 npm run tauri build
 ```
 
-## Installers
+## Downloads
 
-The workflow at `.github/workflows/build-installers.yml` builds:
+Get the latest M0Z4 Launcher release from the [GitHub Releases page](https://github.com/mozayayayayay/M4-launcher/releases/latest). Choose the installer for your operating system:
 
-- Linux `.deb`
-- Windows NSIS `*-setup.exe`
+- **Linux:** download the `.deb` package.
+- **Windows:** download the NSIS `*-setup.exe` installer.
 
-Run it from the GitHub Actions tab after pushing the project to a GitHub repository. The workflow output is not a substitute for testing the resulting installers.
+The release page always contains the available files for the latest published version. If a release is still building, check the [Actions tab](https://github.com/mozayayayayay/M4-launcher/actions/workflows/build-installers.yml) for its build status.
+
+## Building installers
+
+The workflow at `.github/workflows/build-installers.yml` builds Linux `.deb` and Windows NSIS setup installers. It runs when the workflow file is added/updated on `main`, can also be started manually from the Actions tab, and runs for pushed `v*` tags. A release is published only after the build jobs complete.
 
 ## Account and external-client scope
 
