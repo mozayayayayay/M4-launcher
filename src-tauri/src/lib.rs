@@ -878,6 +878,205 @@ fn json_u32(value: &Value, camel: &str, snake: &str) -> Option<u32> {
         .and_then(|n| u32::try_from(n).ok())
 }
 
+fn required_java_major(version_json: &Value, minecraft_version: &str) -> u32 {
+    if let Some(major) = version_json["javaVersion"]["majorVersion"].as_u64() {
+        return major as u32;
+    }
+
+    // Compatibility fallback for old or third-party version metadata.
+    let parts: Vec<u32> = minecraft_version
+        .split('.')
+        .filter_map(|part| part.parse::<u32>().ok())
+        .collect();
+    if parts.first() == Some(&1) {
+        let minor = *parts.get(1).unwrap_or(&0);
+        let patch = *parts.get(2).unwrap_or(&0);
+        if minor <= 16 { 8 }
+        else if minor == 17 { 16 }
+        else if minor < 20 || (minor == 20 && patch < 5) { 17 }
+        else if minor == 20 { 21 }
+        else { 25 }
+    } else if parts.first().is_some_and(|major| *major >= 26) {
+        // Minecraft's post-1.x version scheme (for example 26.2) uses Java 25.
+        25
+    } else {
+        21
+    }
+}
+
+fn java_executable_name() -> &'static str {
+    if cfg!(windows) { "java.exe" } else { "java" }
+}
+
+fn java_major_version(executable: &Path) -> Option<u32> {
+    let output = Command::new(executable).arg("-version").output().ok()?;
+    let text = format!(
+        "{}\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    for line in text.lines() {
+        if !line.to_ascii_lowercase().contains("version") {
+            continue;
+        }
+        let version = line.split('"').nth(1).unwrap_or(line);
+        let mut parts = version.split('.');
+        let first = parts.next()?.trim_matches(|c: char| !c.is_ascii_digit()).parse::<u32>().ok()?;
+        if first == 1 {
+            return parts.next()?.split(|c: char| !c.is_ascii_digit()).next()?.parse().ok();
+        }
+        return Some(first);
+    }
+    None
+}
+
+fn find_java_in_directory(directory: &Path, depth: usize) -> Option<PathBuf> {
+    if depth > 7 { return None; }
+    let entries = fs::read_dir(directory).ok()?;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_file()
+            && path.file_name().and_then(|name| name.to_str()) == Some(java_executable_name())
+        {
+            return Some(path);
+        }
+        if path.is_dir() {
+            if let Some(found) = find_java_in_directory(&path, depth + 1) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+fn installed_java_candidates(preferred: Option<&str>) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(value) = preferred.filter(|value| !value.trim().is_empty()) {
+        candidates.push(PathBuf::from(value));
+    }
+
+    if let Some(home) = std::env::var_os("JAVA_HOME") {
+        candidates.push(PathBuf::from(home).join("bin").join(java_executable_name()));
+        #[cfg(target_os = "macos")]
+        candidates.push(PathBuf::from(home).join("Contents/Home/bin/java"));
+    }
+
+    if let Some(path) = std::env::var_os("PATH") {
+        for directory in std::env::split_paths(&path) {
+            candidates.push(directory.join(java_executable_name()));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    for root in ["/usr/lib/jvm", "/usr/java", "/opt/java"] {
+        if let Some(found) = find_java_in_directory(Path::new(root), 0) {
+            candidates.push(found);
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    if let Some(found) = find_java_in_directory(Path::new("/Library/Java/JavaVirtualMachines"), 0) {
+        candidates.push(found);
+    }
+
+    #[cfg(target_os = "windows")]
+    for variable in ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"] {
+        if let Some(root) = std::env::var_os(variable) {
+            for folder in ["Java", "Eclipse Adoptium", "Microsoft"] {
+                if let Some(found) = find_java_in_directory(&PathBuf::from(&root).join(folder), 0) {
+                    candidates.push(found);
+                }
+            }
+        }
+    }
+
+    candidates
+}
+
+async fn resolve_java_runtime(
+    app: &AppHandle,
+    client: &reqwest::Client,
+    version_json: &Value,
+    minecraft_version: &str,
+    preferred: Option<&str>,
+    instance_id: &str,
+) -> Result<PathBuf, String> {
+    let required = required_java_major(version_json, minecraft_version);
+
+    for candidate in installed_java_candidates(preferred) {
+        if java_major_version(&candidate) == Some(required) {
+            return Ok(candidate);
+        }
+    }
+
+    let os = if cfg!(target_os = "windows") { "windows" }
+        else if cfg!(target_os = "macos") { "mac" }
+        else { "linux" };
+    let arch = match std::env::consts::ARCH {
+        "x86_64" => "x64",
+        "aarch64" => "aarch64",
+        "x86" => "x86",
+        other => return Err(format!("Automatic Java {required} installation is not supported on CPU architecture {other}.")),
+    };
+
+    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let runtime_dir = app_dir.join("runtimes").join(format!("temurin-{required}-{os}-{arch}"));
+    if let Some(found) = find_java_in_directory(&runtime_dir, 0) {
+        if java_major_version(&found) == Some(required) {
+            return Ok(found);
+        }
+    }
+
+    emit_progress(app, instance_id, 0, 1, format!("Downloading Java {required} runtime"));
+    fs::create_dir_all(&runtime_dir).map_err(|e| format!("Could not create Java runtime directory: {e}"))?;
+
+    let extension = if cfg!(windows) { "zip" } else { "tar.gz" };
+    let archive_path = runtime_dir.join(format!("temurin-{required}.{extension}"));
+    let url = format!(
+        "https://api.adoptium.net/v3/binary/latest/{required}/ga/{os}/{arch}/jdk/hotspot/normal/eclipse"
+    );
+    let response = client.get(&url).send().await
+        .map_err(|e| format!("Could not download Java {required}: {e}"))?
+        .error_for_status()
+        .map_err(|e| format!("Java {required} download failed: {e}"))?;
+    let bytes = response.bytes().await.map_err(|e| format!("Could not read Java {required} download: {e}"))?;
+    tokio::fs::write(&archive_path, &bytes).await
+        .map_err(|e| format!("Could not save Java {required} runtime: {e}"))?;
+
+    emit_progress(app, instance_id, 0, 1, format!("Extracting Java {required} runtime"));
+    #[cfg(target_os = "windows")]
+    {
+        let file = fs::File::open(&archive_path).map_err(|e| e.to_string())?;
+        let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid Java runtime archive: {e}"))?;
+        archive.extract(&runtime_dir).map_err(|e| format!("Could not extract Java {required}: {e}"))?;
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let status = Command::new("tar")
+            .arg("-xzf").arg(&archive_path)
+            .arg("-C").arg(&runtime_dir)
+            .status()
+            .map_err(|e| format!("Could not extract Java {required}; tar is unavailable: {e}"))?;
+        if !status.success() {
+            return Err(format!("Could not extract the Java {required} runtime archive."));
+        }
+    }
+
+    let executable = find_java_in_directory(&runtime_dir, 0)
+        .ok_or_else(|| format!("Java {required} downloaded, but its executable could not be found."))?;
+    let detected = java_major_version(&executable);
+    if detected != Some(required) {
+        return Err(format!(
+            "Downloaded Java runtime reported version {:?}; Minecraft requires Java {required}.",
+            detected
+        ));
+    }
+
+    let _ = fs::remove_file(archive_path);
+    Ok(executable)
+}
+
+
 fn current_os_name() -> &'static str {
     #[cfg(target_os = "linux")]
     {
@@ -1393,10 +1592,9 @@ async fn launch_minecraft(
     let (username, uuid) = selected_offline_account(&app)?;
     let settings = launcher_settings(&app)?;
 
-    let java = json_string(&settings, "javaPath", "java_path")
+    let preferred_java = json_string(&settings, "javaPath", "java_path")
         .filter(|value| !value.trim().is_empty())
-        .or(instance.java_path.as_deref())
-        .unwrap_or("java");
+        .or(instance.java_path.as_deref());
 
     let memory = json_u32(&settings, "memoryMb", "memory_mb")
         .unwrap_or(instance.memory_mb)
@@ -1414,6 +1612,15 @@ async fn launch_minecraft(
         .user_agent("M0Z4-Launcher/0.1.0")
         .build()
         .map_err(|e| e.to_string())?;
+
+    let java = resolve_java_runtime(
+        &app,
+        &client,
+        &version_json,
+        &instance.version,
+        preferred_java,
+        &id,
+    ).await?;
 
     emit_progress(&app, &id, 0, 1, "Preparing Minecraft libraries");
 
