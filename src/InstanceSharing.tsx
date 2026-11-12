@@ -264,6 +264,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
               setStatus("Verifying files and importing instance...");
               try {
                 await writeQueueRef.current;
+                if (sessionEndedRef.current || receiveRef.current !== archiveId) return;
                 const imported = await invoke<{ id: string; name: string }>("finish_instance_share_receive", {
                   archiveId, expectedSha256: current.sha256
                 });
@@ -281,8 +282,8 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
             const archiveId = receiveRef.current;
             if (!current || !archiveId || !approvedRef.current) return;
             const bytes = new Uint8Array(messageEvent.data);
-            const offset = offsetRef.current;
             writeQueueRef.current = writeQueueRef.current.then(async () => {
+              const offset = offsetRef.current;
               await invoke("write_instance_share_chunk", {
                 archiveId, offset, archiveSize: current.size, bytes: Array.from(bytes)
               });
