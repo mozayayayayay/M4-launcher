@@ -64,6 +64,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   const approvedRef = useRef(false);
   const transferStartedRef = useRef(false);
   const sessionEndedRef = useRef(false);
+  const signalingCompleteRef = useRef(false);
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
   const candidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
@@ -111,7 +112,10 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         fail("A direct peer-to-peer connection could not be established. Your network may block direct connections; M4 will not relay your files.");
       }
       if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
+        signalingCompleteRef.current = true;
         setStatus("Direct encrypted connection established");
+        // Once ICE is connected, WebRTC carries the transfer directly; the signaling socket is no longer needed.
+        try { socketRef.current?.close(); } catch { /* ignore */ }
       }
     };
     peer.onconnectionstatechange = () => {
@@ -169,6 +173,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       return;
     }
     sessionEndedRef.current = false;
+    signalingCompleteRef.current = false;
     setBusy(true); setError(""); setStatus("Preparing instance archive...");
     try {
       const info = await invoke<ArchiveInfo>("create_instance_share_archive", { instanceId, includeSaves });
@@ -215,7 +220,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           catch (cause) { fail("Invalid connection response: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
           await applyIce(message.payload as RTCIceCandidateInit);
-        } else if (message.type === "close" && !sessionEndedRef.current) fail("The other launcher disconnected.");
+        } else if (message.type === "close" && !sessionEndedRef.current && !signalingCompleteRef.current) fail("The other launcher disconnected.");
       };
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
@@ -235,6 +240,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     const normalized = enteredCode.trim().toUpperCase();
     if (!/^[23456789A-HJ-NP-Z]{8}$/.test(normalized)) { setError("Enter the eight-character sharing code."); return; }
     sessionEndedRef.current = false;
+    signalingCompleteRef.current = false;
     setBusy(true); setError(""); setStatus("Connecting to sender...");
     try {
       const peer = makePeer();
@@ -315,7 +321,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           } catch (cause) { fail("Could not answer the sender: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
           await applyIce(message.payload as RTCIceCandidateInit);
-        } else if (message.type === "close" && !sessionEndedRef.current) fail("The sender disconnected.");
+        } else if (message.type === "close" && !sessionEndedRef.current && !signalingCompleteRef.current) fail("The sender disconnected.");
       };
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
