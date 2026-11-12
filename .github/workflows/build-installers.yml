@@ -66,7 +66,7 @@ jobs:
         shell: bash
         run: |
           if [[ -z "${M4_SIGNALING_URL}" ]]; then
-            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing 0.1.7."
+            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing a new version."
             exit 1
           fi
           curl --fail --silent --show-error "${M4_SIGNALING_URL%/}/health"
@@ -109,7 +109,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.1.7
+            M0Z4 Launcher v0.1.8
 
             - Share complete Minecraft instances directly between M4 users with a one-time code.
             - Encrypted WebRTC peer-to-peer transfer; signaling carries connection metadata only.
@@ -118,7 +118,8 @@ jobs:
             - Direct-only networking: no cloud file storage and no file-relay fallback.
             - Share-link creation stays responsive and shows an animated preparation progress bar.
             - Fixed native WebRTC sharing startup/cleanup on Linux and Windows; transfer remains direct-only.
-            - Midnight is pure black with coordinated white controls; Snowy has consistent white buttons and corrected select arrows.
+            - Midnight is a monochrome Galaxy reskin with black and gray surfaces, white stars, gray nebulae, and matching Home instance cards, buttons, and controls.
+            - Compact selection controls prevent labels from clipping; Snowy and Midnight show exactly one correctly styled chevron.
             - Text-entry fields use a consistent polished style and the placeholder "insert here".
             - Modrinth mod and modpack titles open a details menu with descriptions, compatible versions, and available gallery images.
             - Removed CurseForge modpack support; Modrinth remains the sole modpack catalog.
