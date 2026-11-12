@@ -2916,3 +2916,20 @@ p, span, strong, small, label {
 :root[data-theme="snowy"] .app-shell .banner-planet { background:radial-gradient(circle at 30% 28%,#fff,#a5dbe3 30%,#69b8c7 68%,#3c8e9f 100%)!important; box-shadow:0 0 45px #00a9c755,inset -12px -12px 25px #397f8d66!important; }
 :root[data-theme="snowy"] .app-shell .banner-orbit { border-color:#00a9c788!important; }
 :root[data-theme="snowy"] .app-shell .selected-dot { background:#00a9c7!important; box-shadow:0 0 9px #00a9c788!important; }
+
+/* Smooth, low-cost star parallax: transform-only, frame-throttled, no animated catch-up. */
+.galaxy-stars {
+  transition: none !important;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.stars-one {
+  transform: translate3d(calc(var(--star-shift-x) * .25),calc(var(--star-shift-y) * .25),0) !important;
+}
+.stars-two {
+  transform: translate3d(calc(var(--star-shift-x) * -.4),calc(var(--star-shift-y) * -.4),0) !important;
+}
+.galaxy-background .galaxy-nebula {
+  transition: none !important;
+  translate: none !important;
+}
