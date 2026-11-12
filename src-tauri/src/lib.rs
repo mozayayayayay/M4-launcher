@@ -1894,7 +1894,7 @@ async fn search_modrinth(
 
     let project_type = project_type.unwrap_or_else(|| "mod".into());
 
-    let allowed_types = ["mod", "modpack"];
+    let allowed_types = ["mod", "modpack", "resourcepack", "shader"];
 
     if !allowed_types.contains(&project_type.as_str()) {
         return Err("Unsupported Modrinth project type".into());
@@ -2024,6 +2024,49 @@ async fn install_modrinth_mod(
         .and_then(|item| item["id"].as_str()).ok_or("No compatible release found for this instance")?;
     let installed = install_modrinth_version_tree(&app, &client, &instance, version_id).await?;
     Ok(installed.join(", "))
+}
+
+// Install a selected Modrinth resource pack or shader into the correct instance folder.
+#[tauri::command]
+async fn install_modrinth_resource_version(
+    app: AppHandle,
+    instance_id: String,
+    version_id: String,
+    content_type: String,
+) -> Result<String, String> {
+    let folder = match content_type.as_str() {
+        "resourcepack" => "resourcepacks",
+        "shader" => "shaderpacks",
+        _ => return Err("Unsupported resource type.".into()),
+    };
+    let data = load_data(&app)?;
+    let instance = data.instances.iter().find(|i| i.id == instance_id)
+        .ok_or_else(|| "Instance not found".to_string())?.clone();
+    let client = reqwest::Client::builder()
+        .user_agent("M0Z4-Launcher/0.1.9")
+        .build().map_err(|e| e.to_string())?;
+    let version = fetch_modrinth_version(&client, &version_id).await?;
+    let compatible_game = version["game_versions"].as_array()
+        .is_some_and(|items| items.iter().any(|v| v.as_str() == Some(instance.version.as_str())));
+    if !compatible_game {
+        return Err(format!("This download is not compatible with Minecraft {}.", instance.version));
+    }
+    let file = version["files"].as_array()
+        .and_then(|files| files.iter().find(|f| f["primary"].as_bool() == Some(true)).or_else(|| files.first()))
+        .ok_or("Selected version has no downloadable file")?;
+    let url = file["url"].as_str().ok_or("Download URL is missing")?;
+    if !url.starts_with("https://") {
+        return Err("Downloads must use HTTPS.".into());
+    }
+    let filename = file["filename"].as_str().ok_or("Download filename is missing")?;
+    let safe_name = Path::new(filename).file_name().ok_or("Invalid download filename")?;
+    let destination_dir = PathBuf::from(&instance.game_dir).join(folder);
+    tokio::fs::create_dir_all(&destination_dir).await.map_err(|e| e.to_string())?;
+    let destination = destination_dir.join(safe_name);
+    emit_progress(&app, &instance_id, 0, 1, format!("Downloading {}", filename));
+    download_file(&client, url, &destination, file["hashes"]["sha1"].as_str()).await?;
+    emit_progress(&app, &instance_id, 1, 1, format!("Installed {}", filename));
+    Ok(safe_name.to_string_lossy().to_string())
 }
 
 // Modrinth project details (description and gallery for the project info menu)
@@ -2766,6 +2809,7 @@ pub fn run() {
             get_modrinth_project_details,
             get_modrinth_project_versions,
             install_modrinth_mod_version,
+            install_modrinth_resource_version,
             install_modrinth_modpack,
             get_installed_modpack,
             remove_mod,
