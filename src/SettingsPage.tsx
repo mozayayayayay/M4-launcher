@@ -371,13 +371,6 @@ export default function SettingsPage({ selected, onNotice }: Props) {
 
           <div className="section-title">
             <div>
-              <h3>Content sources</h3>
-              <p>Connect optional modpack catalogs.</p>
-            </div>
-          </div>
-
-          <div className="section-title">
-            <div>
               <h3>Java & memory</h3>
               <p>Configure the resources intended for Minecraft.</p>
             </div>
