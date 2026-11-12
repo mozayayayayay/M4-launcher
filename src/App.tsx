@@ -126,10 +126,32 @@ export default function App() {
   const [modPageSize, setModPageSize] = useState(30);
   const [modsTab, setModsTab] = useState<"discover" | "installed">("discover");
   const [selectedProject, setSelectedProject] = useState<ModrinthMod | null>(null);
+  const [projectDetails, setProjectDetails] = useState<Record<string, any> | null>(null);
   const [projectVersions, setProjectVersions] = useState<ProjectVersion[]>([]);
   const [selectedProjectVersion, setSelectedProjectVersion] = useState("");
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [installedModpack, setInstalledModpack] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const applyPlaceholders = (root: ParentNode) => {
+      root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach((field) => {
+        const type = field instanceof HTMLInputElement ? field.type : "textarea";
+        if (!["checkbox", "radio", "color", "range", "file", "button", "submit", "reset", "hidden"].includes(type)) {
+          field.placeholder = "insert here";
+        }
+      });
+    };
+    applyPlaceholders(document);
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) applyPlaceholders(node);
+        });
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   const projectsPageRef = useRef<HTMLDivElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
@@ -673,16 +695,22 @@ export default function App() {
 
   async function openProjectDownload(mod: ModrinthMod) {
     setSelectedProject(mod);
+    setProjectDetails(null);
     setProjectVersions([]);
     setSelectedProjectVersion("");
     setVersionsLoading(true);
     try {
-
-      const versions = await invoke<ProjectVersion[]>("get_modrinth_project_versions", {
-        projectId: mod.projectId, gameVersion: modVersion || selected?.version,
-        loader: page === "Modpacks" ? null : selected?.loader
-      });
+      const [versions, details] = await Promise.all([
+        invoke<ProjectVersion[]>("get_modrinth_project_versions", {
+          projectId: mod.projectId, gameVersion: modVersion || selected?.version,
+          loader: page === "Modpacks" ? null : selected?.loader
+        }),
+        invoke<Record<string, any>>("get_modrinth_project_details", {
+          projectId: mod.projectId
+        })
+      ]);
       setProjectVersions(versions);
+      setProjectDetails(details);
       setSelectedProjectVersion(versions[0]?.id ?? "");
     } catch (error) {
       setNotice(`Couldn't load downloadable versions: ${String(error)}`);
@@ -1334,7 +1362,12 @@ export default function App() {
                             )}
 
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <strong>{mod.title}</strong>
+                              <button
+        type="button"
+        className="project-title-button"
+        onClick={() => openProjectDownload(mod)}
+        aria-label={`Open details for ${mod.title}`}
+      >{mod.title}</button>
                               <small style={{ display: "block" }}>
                                 by {mod.author}
                               </small>
@@ -1581,11 +1614,23 @@ export default function App() {
         <div className="modal-backdrop" onClick={() => !busy && setSelectedProject(null)}>
           <div className="modal project-download-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-heading">
-              <div><span className="eyebrow">{page === "Modpacks" ? "MODRINTH MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3></div>
+              <div><span className="eyebrow">{page === "Modpacks" ? "MODRINTH MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3><small>by {selectedProject.author} · {selectedProject.downloads.toLocaleString()} downloads</small></div>
               <button className="icon-button" onClick={() => setSelectedProject(null)} disabled={busy}><X size={18} /></button>
             </div>
-            {versionsLoading ? <p>Loading compatible versions...</p> : (
+            {versionsLoading ? <p>Loading project details and compatible versions...</p> : (
               <>
+                {projectDetails?.description && (
+                  <p className="project-description">{projectDetails.description}</p>
+                )}
+                {Array.isArray(projectDetails?.gallery) && projectDetails.gallery.length > 0 && (
+                  <div className="project-gallery" aria-label="Available project images">
+                    {projectDetails.gallery.slice(0, 8).map((image: any, index: number) => (
+                      <a key={image.url ?? index} href={image.url} target="_blank" rel="noreferrer" title={image.title ?? `Project image ${index + 1}`}>
+                        <img src={image.url} alt={image.title ?? `${selectedProject.title} screenshot ${index + 1}`} loading="lazy" />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 <label>
                   {page === "Modpacks" ? "Modpack version" : "Mod version"}
                   <select value={selectedProjectVersion} onChange={(event) => setSelectedProjectVersion(event.target.value)}>
