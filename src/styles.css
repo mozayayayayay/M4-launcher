@@ -2525,3 +2525,158 @@ p, span, strong, small, label {
 :root[data-theme="dark"] .settings-card select, :root[data-theme="dark"] .settings-card textarea {
   background: linear-gradient(180deg, #101010, #080808); color: #fff; border-color: #343434;
 }
+
+
+/* M4 0.1.7: Midnight is a true monochrome black theme, including every control. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --accent-color: #ffffff;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app-shell {
+  background: #000 !important;
+  color: #fff !important;
+}
+:root[data-theme="dark"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window,.update-release-card,.update-version,.share-modal,.install-progress-card) {
+  background: #050505 !important;
+  color: #fff !important;
+  border-color: #292929 !important;
+}
+:root[data-theme="dark"] .app-shell :is(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,a,li,.eyebrow,.info-label,.section-title,.page-heading,.brand,.nav-item,.instance-item,.play-instance,.share-description,.share-status,.update-message) {
+  color: #fff !important;
+}
+:root[data-theme="dark"] .app-shell button,
+:root[data-theme="dark"] .app-shell .primary-button,
+:root[data-theme="dark"] .app-shell .secondary-button,
+:root[data-theme="dark"] .app-shell .icon-button,
+:root[data-theme="dark"] .app-shell .more-button,
+:root[data-theme="dark"] .app-shell .play-button,
+:root[data-theme="dark"] .app-shell .update-download {
+  color: #fff !important;
+  background: #111 !important;
+  border: 1px solid #3a3a3a !important;
+  box-shadow: inset 0 1px 0 #ffffff12, 0 3px 10px #000 !important;
+}
+:root[data-theme="dark"] .app-shell button:hover:not(:disabled) {
+  color: #fff !important;
+  background: #202020 !important;
+  border-color: #777 !important;
+}
+:root[data-theme="dark"] .app-shell button:disabled {
+  color: #888 !important;
+  background: #090909 !important;
+  border-color: #242424 !important;
+}
+:root[data-theme="dark"] .app-shell input,
+:root[data-theme="dark"] .app-shell select,
+:root[data-theme="dark"] .app-shell textarea {
+  color: #fff !important;
+  background-color: #090909 !important;
+  border-color: #3a3a3a !important;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .app-shell select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+:root[data-theme="dark"] .app-shell select option {
+  color: #fff;
+  background: #080808;
+}
+:root[data-theme="dark"] .app-shell ::placeholder { color: #888 !important; }
+:root[data-theme="dark"] .galaxy-background { opacity: 0 !important; }
+
+/* Snowy selects use a custom cyan chevron so the native arrow never clashes. */
+:root[data-theme="snowy"] .app-shell select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  color: #176d80 !important;
+  background-color: #fff !important;
+  border: 1px solid #bfd5dc !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23176d80' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 13px center !important;
+  padding-right: 38px !important;
+}
+:root[data-theme="snowy"] .app-shell select option {
+  background: #fff !important;
+  color: #176d80 !important;
+}
+
+/* More legible text fields across the launcher, not only in Settings. */
+.app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+.app-shell textarea {
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid #ffffff2a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #121a2d, #0a1020);
+  color: #f4f6ff;
+  box-shadow: inset 0 1px 2px #0005, 0 1px 0 #ffffff08;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.app-shell input:focus-visible, .app-shell textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent), inset 0 1px 2px #0004;
+}
+.app-shell input::placeholder, .app-shell textarea::placeholder { color: #8995ad; opacity: .9; }
+:root[data-theme="snowy"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+:root[data-theme="snowy"] .app-shell textarea {
+  color: #174e5d !important;
+  background: linear-gradient(180deg, #fff, #f0f6f8) !important;
+  border-color: #bfd5dc !important;
+  box-shadow: inset 0 1px 2px #3452, 0 1px 0 #fff !important;
+}
+:root[data-theme="snowy"] .app-shell input::placeholder,
+:root[data-theme="snowy"] .app-shell textarea::placeholder { color: #718f99 !important; }
+:root[data-theme="dark"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
+:root[data-theme="dark"] .app-shell textarea {
+  color: #fff !important;
+  background: linear-gradient(180deg, #101010, #070707) !important;
+  border-color: #383838 !important;
+}
+
+/* Project title opens the same rich info/version menu as the download action. */
+.project-title-button {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.project-title-button:hover { text-decoration: underline; }
+.project-description {
+  margin: 12px 0 16px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  opacity: .9;
+}
+.project-gallery {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 18px;
+  padding: 2px 1px 10px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.project-gallery a {
+  display: block;
+  flex: 0 0 190px;
+  height: 112px;
+  overflow: hidden;
+  border: 1px solid #ffffff22;
+  border-radius: 10px;
+}
+.project-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+:root[data-theme="snowy"] .project-gallery a { border-color: #bfd5dc; }
