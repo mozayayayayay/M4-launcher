@@ -71,6 +71,13 @@ jobs:
             exit 1
           fi
 
+      - name: Configure updater public key
+        shell: bash
+        env:
+          M0Z4_UPDATER_PUBLIC_KEY: ${{ vars.M0Z4_UPDATER_PUBLIC_KEY }}
+        run: |
+          node -e "const fs=require('fs'); const p='src-tauri/tauri.conf.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.plugins.updater.pubkey=process.env.M0Z4_UPDATER_PUBLIC_KEY; fs.writeFileSync(p, JSON.stringify(c,null,2)+'\\n');"
+
       - name: Install JavaScript dependencies
         run: npm install
 
