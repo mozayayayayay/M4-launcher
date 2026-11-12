@@ -111,14 +111,11 @@ jobs:
           releaseBody: |
             M0Z4 Launcher v0.1.11
 
-            - Removed the TLauncher / TLMods integration idea; Modrinth remains the only content catalog.
-            - Moved Settings from the top navigation to a gear button at the bottom of the instance sidebar.
-            - Tightened selection menus and text fields and fixed vertical text clipping.
-            - Added an accent-colored memory allocation slider with GB tick marks, synchronized with the MB field.
-            - Reskinned Galaxy as Snowy with light-gray surfaces, cyan accents and cyan text throughout.
-            - Added subtle mouse-reactive parallax to the starfield in every theme.
-
-            - Includes the v0.1.9 texture-pack, shader and direct instance-sharing features.
+            - Replaced pointer-driven star parallax with slow, seamless automatic star drift designed to reduce rendering overhead.
+            - Kept the M4 logo artwork and colors identical across Galaxy, Snowy and Midnight themes.
+            - Made the instance sidebar a translucent, theme-matched glass surface so the starfield remains visible beneath it.
+            - Styled notification toasts to match Galaxy, Midnight and Snowy.
+            - Includes the v0.1.10 UI refinements and earlier launcher features.
             - Signed update packages and latest.json support in-app updates.
             Choose the Linux .deb package or Windows setup.exe installer below.
           releaseDraft: false
