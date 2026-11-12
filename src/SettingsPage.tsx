@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Save, RotateCcw, Palette } from "lucide-react";
 
@@ -380,24 +381,21 @@ export default function SettingsPage({ selected, onNotice }: Props) {
             <label>
               Memory allocation (MB)
 
-              <input
-                type="number"
-                min={512}
-                max={32768}
-                step={512}
-                value={settings.memoryMb}
-                onChange={(event) =>
-                  updateSetting(
-                    "memoryMb",
-                    Math.max(
-                      512,
-                      Number(event.target.value) || 512
-                    )
-                  )
-                }
+              <input className="memory-number-input" type="number" min={512} max={32768} step={512} value={settings.memoryMb}
+                onChange={(event) => updateSetting("memoryMb", Math.min(32768, Math.max(512, Number(event.target.value) || 512)))}
               />
-
-              <small>Default: 4096 MB (4 GB).</small>
+              <div className="memory-slider-wrap">
+                <input className="memory-slider" type="range" min={512} max={32768} step={512}
+                  value={Math.min(32768, Math.max(512, settings.memoryMb))}
+                  style={{ "--memory-progress": `${((settings.memoryMb - 512) / (32768 - 512)) * 100}%` } as CSSProperties}
+                  onChange={(event) => updateSetting("memoryMb", Number(event.target.value))}
+                  aria-label="Memory allocation in gigabytes"
+                />
+                <div className="memory-slider-ticks" aria-hidden="true">
+                  {Array.from({ length: 9 }, (_, index) => <span key={index}>{index === 0 ? "0.5" : index * 4} GB</span>)}
+                </div>
+              </div>
+              <small>Default: 4096 MB (4 GB). Leave enough memory for your operating system.</small>
             </label>
 
             <label>
