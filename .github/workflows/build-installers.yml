@@ -66,9 +66,6 @@ jobs:
       - name: Validate frontend
         run: npm run build
 
-      - name: Align updater lockfile version
-        run: cargo update --manifest-path src-tauri/Cargo.toml -p tauri-plugin-updater --precise 2.13.3
-
       - name: Validate Tauri backend
         run: cargo check --manifest-path src-tauri/Cargo.toml
 
