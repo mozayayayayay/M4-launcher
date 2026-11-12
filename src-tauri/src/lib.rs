@@ -1558,15 +1558,36 @@ async fn install_modloader(
         };
         emit_progress(&app, &instance_id, 1, 4, format!("Downloading {loader_key} installer"));
         let installer_path = game_dir.join("launcher-downloads").join(format!("{loader_key}-{selected}-installer.jar"));
+        // Do not reuse an old or partial installer: download_file skips existing files without a checksum.
+        if installer_path.exists() {
+            fs::remove_file(&installer_path).map_err(|e| format!("Could not replace the cached {loader_key} installer: {e}"))?;
+        }
         download_file(&client, &installer_url, &installer_path, None).await?;
+        // Forge installers must run on the Java major version required by this Minecraft version.
+        // This matters especially for older packs such as RLCraft on Minecraft 1.12.2 (Java 8).
         let settings = launcher_settings(&app)?;
-        let java = json_string(&settings, "javaPath", "java_path").filter(|v| !v.trim().is_empty()).unwrap_or("java");
-        emit_progress(&app, &instance_id, 2, 4, format!("Running {loader_key} installer"));
-        let output = Command::new(java).arg("-jar").arg(&installer_path).arg("--installClient").arg(&game_dir)
-            .output().map_err(|e| format!("Could not run the {loader_key} installer: {e}"))?;
+        let preferred_java = json_string(&settings, "javaPath", "java_path").filter(|v| !v.trim().is_empty());
+        let installer_java = resolve_java_runtime(
+            &app,
+            &client,
+            &base_json,
+            &instance.version,
+            preferred_java.as_deref(),
+            &instance_id,
+        ).await?;
+        emit_progress(&app, &instance_id, 2, 4, format!("Running {loader_key} installer with Java {}", required_java_major(&base_json, &instance.version)));
+        let output = Command::new(&installer_java).arg("-jar").arg(&installer_path).arg("--installClient").arg(&game_dir)
+            .output().map_err(|e| format!("Could not run the {loader_key} installer with {}: {e}", installer_java.display()))?;
         if !output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("{loader_key} installer failed: {}", stderr.chars().take(1200).collect::<String>()));
+            let details = format!("{}\n{}", stdout.trim(), stderr.trim());
+            let details = if details.trim().is_empty() {
+                "The installer exited without reporting an error. Check the Forge installer log.".to_string()
+            } else {
+                details.chars().take(3000).collect::<String>()
+            };
+            return Err(format!("{loader_key} installer failed (exit status {}): {details}", output.status));
         }
         let versions_dir = game_dir.join("versions");
         let mut candidates = Vec::new();
