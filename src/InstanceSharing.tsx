@@ -63,6 +63,8 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   const manifestRef = useRef<IncomingManifest | null>(null);
   const approvedRef = useRef(false);
   const transferStartedRef = useRef(false);
+  const sessionEndedRef = useRef(false);
+  const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
   const candidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
   useEffect(() => () => {
@@ -73,6 +75,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   }, []);
 
   function fail(message: string) {
+    sessionEndedRef.current = true;
     setError(message);
     setStatus("Transfer stopped");
     setBusy(false);
@@ -164,6 +167,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       setError("Instance sharing is not configured yet. Deploy the M4 signaling service and add its URL to the launcher build.");
       return;
     }
+    sessionEndedRef.current = false;
     setBusy(true); setError(""); setStatus("Preparing instance archive...");
     try {
       const info = await invoke<ArchiveInfo>("create_instance_share_archive", { instanceId, includeSaves });
@@ -211,11 +215,11 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           catch (cause) { fail("Invalid connection response: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
           await applyIce(message.payload as RTCIceCandidateInit);
-        } else if (message.type === "close" && busy) fail("The other launcher disconnected.");
+        } else if (message.type === "close" && !sessionEndedRef.current) fail("The other launcher disconnected.");
       };
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
-        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && busy) {
+        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && !sessionEndedRef.current) {
           fail("The signaling session closed before a direct connection was established.");
         }
       };
@@ -229,6 +233,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     }
     const normalized = enteredCode.trim().toUpperCase();
     if (!/^[23456789A-HJ-NP-Z]{8}$/.test(normalized)) { setError("Enter the eight-character sharing code."); return; }
+    sessionEndedRef.current = false;
     setBusy(true); setError(""); setStatus("Connecting to sender...");
     try {
       const peer = makePeer();
@@ -257,10 +262,12 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
               if (!current || !archiveId) return;
               setStatus("Verifying files and importing instance...");
               try {
+                await writeQueueRef.current;
                 const imported = await invoke<{ id: string; name: string }>("finish_instance_share_receive", {
                   archiveId, expectedSha256: current.sha256
                 });
                 receiveRef.current = null;
+                sessionEndedRef.current = true;
                 setStatus("Instance imported successfully");
                 setBusy(false);
                 onImported(imported.id);
@@ -274,19 +281,19 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
             if (!current || !archiveId || !approvedRef.current) return;
             const bytes = new Uint8Array(messageEvent.data);
             const offset = offsetRef.current;
-            try {
+            writeQueueRef.current = writeQueueRef.current.then(async () => {
               await invoke("write_instance_share_chunk", {
                 archiveId, offset, archiveSize: current.size, bytes: Array.from(bytes)
               });
               offsetRef.current += bytes.byteLength;
               setTransferred(offsetRef.current);
               setProgress(Math.min(100, (offsetRef.current / current.size) * 100));
-            } catch (cause) { fail("Couldn't save an incoming file chunk: " + String(cause)); }
+            }).catch((cause) => { fail("Couldn't save an incoming file chunk: " + String(cause)); });
           }
         };
         channel.onopen = () => setStatus("Connected directly. Waiting for instance details...");
         channel.onclose = () => {
-          if (busy && status !== "Instance imported successfully") fail("The direct connection closed.");
+          if (!sessionEndedRef.current && status !== "Instance imported successfully") fail("The direct connection closed.");
         };
       };
 
@@ -306,7 +313,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           } catch (cause) { fail("Could not answer the sender: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
           await applyIce(message.payload as RTCIceCandidateInit);
-        } else if (message.type === "close" && busy) fail("The sender disconnected.");
+        } else if (message.type === "close" && !sessionEndedRef.current) fail("The sender disconnected.");
       };
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
@@ -325,6 +332,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       receiveRef.current = archiveId;
       offsetRef.current = 0;
       approvedRef.current = true;
+      writeQueueRef.current = Promise.resolve();
       setApproved(true);
       setStatus("Receiving instance files directly...");
       channelRef.current?.send(JSON.stringify({ type: "accept" }));
