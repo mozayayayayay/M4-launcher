@@ -2763,9 +2763,6 @@ pub fn run() {
             // Settings and accounts
             settings_accounts::get_launcher_settings,
             settings_accounts::save_launcher_settings,
-            settings_accounts::get_curseforge_key_status,
-            settings_accounts::save_curseforge_api_key,
-            settings_accounts::clear_curseforge_api_key,
             settings_accounts::get_minecraft_options,
             settings_accounts::save_minecraft_options,
             settings_accounts::reset_minecraft_options,
