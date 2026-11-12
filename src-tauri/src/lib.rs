@@ -700,14 +700,15 @@ async fn install_minecraft_version(
         .as_array()
         .ok_or("Minecraft libraries list is missing")?;
 
-    let total_libraries = libraries.len();
-    let mut completed = 0usize;
+    let mut library_downloads: Vec<(String, PathBuf, Option<String>)> = Vec::new();
+    let mut total_libraries = 0usize;
 
     for library in libraries {
         if !library_allowed(library) {
             continue;
         }
 
+        total_libraries += 1;
         let artifact = &library["downloads"]["artifact"];
 
         if let (Some(url), Some(relative_path)) = (
@@ -716,26 +717,22 @@ async fn install_minecraft_version(
         ) {
             let relative = safe_relative_path(relative_path)?;
             let destination = game_dir.join("libraries").join(relative);
-
-            download_file(
-                &client,
-                url,
-                &destination,
-                artifact["sha1"].as_str(),
-            )
-            .await?;
+            library_downloads.push((
+                url.to_string(),
+                destination,
+                artifact["sha1"].as_str().map(str::to_string),
+            ));
         }
-
-        completed += 1;
-
-        emit_progress(
-            &app,
-            &id,
-            completed,
-            total_libraries.max(1),
-            "Downloading Minecraft libraries",
-        );
     }
+
+    download_many(&client, library_downloads).await?;
+    emit_progress(
+        &app,
+        &id,
+        total_libraries,
+        total_libraries.max(1),
+        "Minecraft libraries ready",
+    );
 
     if let Some(asset_index) = version_json.get("assetIndex") {
         let index_url = asset_index["url"]
@@ -771,7 +768,8 @@ async fn install_minecraft_version(
             .ok_or("Asset index objects are missing")?;
 
         let total_assets = objects.len().max(1);
-        let mut finished_assets = 0usize;
+        let mut asset_downloads: Vec<(String, PathBuf, Option<String>)> =
+            Vec::with_capacity(objects.len());
 
         for object in objects.values() {
             let hash = object["hash"]
@@ -794,19 +792,21 @@ async fn install_minecraft_version(
                 hash
             );
 
-            download_file(&client, &url, &destination, Some(hash)).await?;
+            asset_downloads.push((url, destination, Some(hash.to_string())));
+        }
 
-            finished_assets += 1;
+        let mut finished_assets = 0usize;
+        for batch in asset_downloads.chunks(8) {
+            download_many(&client, batch.to_vec()).await?;
+            finished_assets += batch.len();
 
-            if finished_assets % 20 == 0 || finished_assets == total_assets {
-                emit_progress(
-                    &app,
-                    &id,
-                    finished_assets,
-                    total_assets,
-                    "Downloading Minecraft assets",
-                );
-            }
+            emit_progress(
+                &app,
+                &id,
+                finished_assets,
+                total_assets,
+                "Downloading Minecraft assets",
+            );
         }
     }
 
