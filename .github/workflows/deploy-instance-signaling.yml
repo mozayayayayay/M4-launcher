@@ -1,3 +1,4 @@
+# Deploys the direct-peer signaling service; file payloads never pass through this Worker.
 name: Deploy M4 signaling service
 
 on:
