@@ -2409,3 +2409,90 @@ p, span, strong, small, label {
 [data-theme="snowy"] .share-code { color: #202744; }
 [data-theme="snowy"] .share-code-entry input { background: #f8faff; color: #202744; border-color: #cbd3e8; }
 [data-theme="snowy"] .share-incoming-card h4 { color: #202744; }
+
+
+/* M4 v0.1.6 appearance refinements */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app-shell {
+  background: #000 !important;
+  color: #fff !important;
+}
+:root[data-theme="dark"] .app-shell :is(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,a,button,li,.eyebrow,.info-label,.section-title,.page-heading,.brand,.nav-item,.instance-item,.play-instance) {
+  color: #fff !important;
+}
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .instance-rail,
+:root[data-theme="dark"] .info-card,
+:root[data-theme="dark"] .settings-card,
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .dropdown,
+:root[data-theme="dark"] .bottom-play,
+:root[data-theme="dark"] .share-modal {
+  background: #050505 !important;
+  color: #fff !important;
+  border-color: #242424 !important;
+}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] .share-code-entry input {
+  background: #090909 !important;
+  color: #fff !important;
+  border-color: #333 !important;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .galaxy-background { opacity: 0 !important; }
+
+:root[data-theme="snowy"] body { background: #dce9ee; color: #167b91; }
+:root[data-theme="snowy"] .app-shell {
+  background:
+    radial-gradient(ellipse at 12% 0%, #f3f8fa 0%, transparent 45%),
+    radial-gradient(ellipse at 88% 18%, #dce9ed 0%, transparent 42%),
+    linear-gradient(145deg, #edf3f5, #dce8ec);
+  color: #167b91;
+}
+:root[data-theme="snowy"] .topbar,
+:root[data-theme="snowy"] .instance-rail { background: #e8f0f3ed; border-color: #c2d5dc; }
+:root[data-theme="snowy"] .info-card,
+:root[data-theme="snowy"] .bottom-play,
+:root[data-theme="snowy"] .settings-card,
+:root[data-theme="snowy"] .modal,
+:root[data-theme="snowy"] .dropdown { background: #e9f1f4ed; border-color: #c5d8df; }
+:root[data-theme="snowy"] .galaxy-background { opacity: .07; filter: saturate(.25) brightness(1.1); }
+
+.settings-card input[type="number"] {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid #ffffff24;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #111a31, #0b1224);
+  color: #f4f6ff;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 1px 3px #0006, 0 1px 0 #ffffff08;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.settings-card input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent), inset 0 1px 3px #0005;
+}
+:root[data-theme="snowy"] .settings-card input[type="number"] {
+  background: linear-gradient(180deg, #f5f8f9, #e7eef1);
+  color: #176d80;
+  border-color: #c1d2d8;
+  box-shadow: inset 0 1px 2px #3453;
+}
+:root[data-theme="dark"] .settings-card input[type="number"] {
+  background: #090909;
+  color: #fff;
+  border-color: #303030;
+}
+.share-progress-track.is-indeterminate .share-progress-fill {
+  width: 38%;
+  animation: share-progress-indeterminate 1.35s ease-in-out infinite;
+}
+@keyframes share-progress-indeterminate {
+  0% { transform: translateX(-115%); }
+  55% { transform: translateX(165%); }
+  100% { transform: translateX(300%); }
+}
