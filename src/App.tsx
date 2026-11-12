@@ -1336,10 +1336,9 @@ export default function App() {
                         </select>
                       </div>
 
-                      {isModsPage && modVersion !== selected.version && (
+                      {!isModpacksPage && modVersion !== selected.version && (
                         <small style={{ display: "block", marginTop: 10 }}>
-                          Browsing another version. Individual mod installation
-                          is disabled until you return to your instance version.
+                          Browsing another version. Installation is disabled until you return to your instance version.
                         </small>
                       )}
                     </div>
