@@ -75,6 +75,7 @@ export class ShareRoom {
         receiverUsed: false,
         consumed: false,
       });
+      await this.state.storage.setAlarm(expiresAt);
       return Response.json({ expiresAt });
     }
 
@@ -93,6 +94,7 @@ export class ShareRoom {
       if (used) return new Response("This sharing code has already been used.", { status: 409 });
       if (!this.sockets.has("sender")) return new Response("The sender is not connected yet.", { status: 409 });
       await this.state.storage.put("receiverUsed", true);
+      await this.state.storage.deleteAlarm();
     } else if (this.sockets.has("sender")) {
       return new Response("The sender is already connected.", { status: 409 });
     }
@@ -140,6 +142,7 @@ export class ShareRoom {
       if (peer && peer.readyState === WebSocket.READY_STATE_OPEN) {
         try { peer.send(JSON.stringify({ type: "close" })); } catch { /* ignore */ }
       }
+      if (this.sockets.size === 0) void this.state.storage.deleteAll();
     });
 
     server.addEventListener("error", () => {
@@ -162,6 +165,11 @@ export class ShareRoom {
       try { socket.close(code, reason); } catch { /* ignore */ }
     }
     this.sockets.clear();
+    void this.state.storage.deleteAll();
+  }
+
+  async alarm() {
+    this.closeRoom(1000, "Sharing code expired");
   }
 
   webSocketMessage(_socket: WebSocket, _message: string | ArrayBuffer) {
