@@ -106,7 +106,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
   >({});
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);\n  const [curseForgeKey, setCurseForgeKey] = useState("");\n  const [curseForgeConfigured, setCurseForgeConfigured] = useState(false);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -129,7 +129,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
         );
 
         if (active) {
-          setSettings(normalizeSettings(saved));
+          setSettings(normalizeSettings(saved));\n          const keyStatus = await invoke<{ configured: boolean }>("get_curseforge_key_status");\n          setCurseForgeConfigured(keyStatus.configured);
         }
       } catch (error) {
         if (active) {
@@ -195,7 +195,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
     setSaving(true);
 
     try {
-      await invoke("save_launcher_settings", { settings });
+      await invoke("save_launcher_settings", { settings });\n      if (curseForgeKey.trim()) {\n        await invoke("save_curseforge_api_key", { apiKey: curseForgeKey.trim() });\n        setCurseForgeKey("");\n        setCurseForgeConfigured(true);\n      }
 
       if (selected) {
         await invoke("save_minecraft_options", {
@@ -367,6 +367,34 @@ export default function SettingsPage({ selected, onNotice }: Props) {
                 }
               />
             </label>
+          </div>
+
+          <div className="section-title">
+            <div>
+              <h3>Content sources</h3>
+              <p>Connect optional modpack catalogs.</p>
+            </div>
+          </div>
+          <div className="info-card settings-card">
+            <label>
+              CurseForge API key
+              <input type="password" autoComplete="new-password" value={curseForgeKey}
+                onChange={(event) => setCurseForgeKey(event.target.value)}
+                placeholder={curseForgeConfigured ? "API key saved on this device" : "Paste your CurseForge API key"} />
+              <small>{curseForgeConfigured
+                ? "A key is saved locally on this device. Enter a new key to replace it."
+                : "Required to browse and install CurseForge modpacks. Stored in M4's local app data and never included in releases."}</small>
+            </label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="secondary-button" onClick={async () => {
+                try {
+                  await invoke("clear_curseforge_api_key");
+                  setCurseForgeConfigured(false);
+                  setCurseForgeKey("");
+                  onNotice("CurseForge API key removed from this device.");
+                } catch (error) { onNotice(`Couldn't remove key: ${String(error)}`); }
+              }} disabled={!curseForgeConfigured || saving}>Remove saved key</button>
+            </div>
           </div>
 
           <div className="section-title">
