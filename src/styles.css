@@ -3094,3 +3094,16 @@ p, span, strong, small, label {
     transform: none !important;
   }
 }
+
+
+/* Keep the glass rail translucent even under the high-specificity theme skins. */
+:root[data-theme="dark"] .app-shell .instance-rail {
+  background: rgba(7, 7, 7, .46) !important;
+  border-right-color: #ffffff1c !important;
+}
+
+:root[data-theme="snowy"] .app-shell .instance-rail {
+  background: rgba(229, 235, 237, .54) !important;
+  border-right-color: #a9d8e0bb !important;
+  box-shadow: inset -1px 0 0 #ffffff80 !important;
+}
