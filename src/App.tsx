@@ -5,13 +5,14 @@ import { listen } from "@tauri-apps/api/event";
 import {
   ChevronLeft, ChevronRight, Cpu, Gamepad2, Layers3, Home,
   Library, Plus, Settings, UserRound, X,
-  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash
+  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, Share2
 } from "lucide-react";
 
 import SettingsPage from "./SettingsPage";
 import AccountsPage from "./AccountsPage";
 import UpdatesPage from "./UpdatesPage";
 import { installLocalization } from "./i18n";
+import InstanceSharing from "./InstanceSharing";
 
 type Instance = {
   id: string;
@@ -101,6 +102,7 @@ export default function App() {
   const [page, setPage] = useState<Page>("Home");
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sharingMode, setSharingMode] = useState<"send" | "receive" | null>(null);
   const [modal, setModal] = useState<"new" | "install" | null>(null);
 
   const [newName, setNewName] = useState("");
@@ -1093,6 +1095,16 @@ export default function App() {
 
                               <div className="dropdown-divider" />
 
+                              <button onClick={() => { setMenuOpen(false); setSharingMode("send"); }}>
+                                <Share2 size={16} /> Share instance
+                              </button>
+
+                              <button onClick={() => { setMenuOpen(false); setSharingMode("receive"); }}>
+                                <Download size={16} /> Receive instance
+                              </button>
+
+                              <div className="dropdown-divider" />
+
                               <button onClick={openInstaller}>
                                 <Download size={16} /> Install Minecraft version
                               </button>
@@ -1740,6 +1752,20 @@ export default function App() {
             )}
           </div>
         </div>
+      )}
+
+      {sharingMode && selected && (
+        <InstanceSharing
+          mode={sharingMode}
+          instanceId={selected.id}
+          onClose={() => setSharingMode(null)}
+          onNotice={setNotice}
+          onImported={async (id) => {
+            await invoke("select_instance", { id });
+            await refreshInstances();
+            setPage("Home");
+          }}
+        />
       )}
     </div>
   );
