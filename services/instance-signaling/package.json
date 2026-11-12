@@ -1,0 +1,14 @@
+{
+  "name": "m4-instance-signaling",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20261112.0",
+    "typescript": "^5.6.3",
+    "wrangler": "^4.45.0"
+  }
+}
