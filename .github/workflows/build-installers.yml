@@ -145,5 +145,5 @@ jobs:
             --arg deb_sig "$(cat "updater-assets/${deb_sig_name}")" \
             --arg exe_url "${exe_url}" \
             --arg exe_sig "$(cat "updater-assets/${exe_sig_name}")" \
-            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"linux-x86_64-deb":{url:$deb_url,signature:$deb_sig},"windows-x86_64-nsis":{url:$exe_url,signature:$exe_sig}}}' > latest.json
+            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"linux-x86_64":{url:$deb_url,signature:$deb_sig},"windows-x86_64":{url:$exe_url,signature:$exe_sig}}}' > latest.json
           gh release upload "${tag}" latest.json --repo "${GITHUB_REPOSITORY}" --clobber
