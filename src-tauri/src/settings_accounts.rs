@@ -405,7 +405,7 @@ pub fn save_curseforge_api_key(app: AppHandle, api_key: String) -> Result<CurseF
         return Err("Enter a valid CurseForge API key.".into());
     }
     let path = app_file(&app, "curseforge-key.txt")?;
-    fs::write(&path, key).map_err(|e| e.to_string())?;
+    fs::write(&path, key).map_err(|e| e.to_string())?;\n    #[cfg(unix)]\n    {\n        use std::os::unix::fs::PermissionsExt;\n        fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).map_err(|e| e.to_string())?;\n    }
     Ok(CurseForgeKeyStatus { configured: true })
 }
 
