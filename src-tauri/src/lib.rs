@@ -2463,11 +2463,12 @@ fn add_share_directory(
 }
 
 #[tauri::command]
-fn create_instance_share_archive(
+async fn create_instance_share_archive(
     app: AppHandle,
     instance_id: String,
     include_saves: bool,
 ) -> Result<ShareArchiveInfo, String> {
+    tauri::async_runtime::spawn_blocking(move || {
     let data = load_data(&app)?;
     let instance = data.instances.iter().find(|item| item.id == instance_id)
         .ok_or_else(|| "Instance not found".to_string())?;
@@ -2526,6 +2527,10 @@ fn create_instance_share_archive(
         mod_count: count_mods(instance),
         include_saves,
     })
+
+    })
+    .await
+    .map_err(|error| format!("Archive preparation task failed: {error}"))?
 }
 
 #[tauri::command]
