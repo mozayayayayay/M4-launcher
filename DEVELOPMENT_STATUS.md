@@ -1,7 +1,7 @@
 # M0Z4 Launcher — development status
 
 ## Agreed scope
-- Modrinth only for mod and modpack discovery, versions and downloads. CurseForge support and API-key settings are out of scope.
+- Modrinth is the active source for mods, modpacks, texture packs and shaders. TLauncher / TLMods is shown as an unavailable source option until an officially supported public integration can be verified; do not use private endpoints or scrape access-controlled data. CurseForge support and API-key settings are out of scope.
 - Local offline profiles only. Built-in Microsoft authentication is out of scope.
 - No Nightly section, Nightly instances, Nightly runtime integration or external Horizon launcher hand-off.
 - Mod and modpack search results use a Download action and compatible-version picker; no descriptions or gallery views.
@@ -19,6 +19,8 @@
 - Instance creation with automatic selected-loader installation and automatic compatible Forge/NeoForge version resolution.
 - Fabric, Quilt, Forge and NeoForge installer integration.
 - Modrinth project discovery, compatible version selection and download/install actions.
+- Dedicated top-level Texture Packs and Shaders pages backed by Modrinth resourcepack/shader project types, with Minecraft-version filtering and installation into the instance `resourcepacks` and `shaderpacks` folders.
+- TLauncher / TLMods source entry is intentionally unavailable pending confirmation of an officially supported public API; no undocumented/private API or scraping.
 - Required dependency installation for selected Modrinth mod versions.
 - Modrinth `.mrpack` modpack installation, including client files and overrides.
 - Dedicated Mods-page sub-navigation with Discover and Installed Mods views, including per-instance removal and live refresh.
@@ -27,7 +29,7 @@
 - Live Minecraft console output.
 - Theme, accent, Java, memory, resolution and Minecraft options settings.
 - Restore-defaults action.
-- Linux `.deb` and Windows NSIS setup GitHub Actions workflow.
+- Linux `.deb` and Windows NSIS setup GitHub Actions workflow; version 0.1.9 is configured for release.
 
 ## Verification still required
 - Complete TypeScript production build and Rust/Tauri compilation from a clean dependency install.
