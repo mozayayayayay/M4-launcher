@@ -155,15 +155,30 @@ export default function App() {
 
   useEffect(() => {
     const shell = document.querySelector<HTMLElement>(".app-shell");
-    if (!shell) return;
-    const moveStars = (event: PointerEvent) => {
-      const x = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      const y = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
-      shell.style.setProperty("--star-shift-x", `${x * 18}px`);
-      shell.style.setProperty("--star-shift-y", `${y * 18}px`);
+    if (!shell || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+
+    const applyStarPosition = () => {
+      frame = 0;
+      // Keep the movement deliberately subtle and update at most once per frame.
+      shell.style.setProperty("--star-shift-x", `${pointerX * 6}px`);
+      shell.style.setProperty("--star-shift-y", `${pointerY * 6}px`);
     };
+
+    const moveStars = (event: PointerEvent) => {
+      pointerX = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
+      pointerY = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      if (!frame) frame = window.requestAnimationFrame(applyStarPosition);
+    };
+
     window.addEventListener("pointermove", moveStars, { passive: true });
-    return () => window.removeEventListener("pointermove", moveStars);
+    return () => {
+      window.removeEventListener("pointermove", moveStars);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const projectsPageRef = useRef<HTMLDivElement>(null);
