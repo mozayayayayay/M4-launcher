@@ -429,8 +429,8 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         {busy && (
           <div className="share-transfer">
             <div className="share-transfer-heading"><span>{status}</span><strong>{total ? progress.toFixed(0) + "%" : ""}</strong></div>
-            {total > 0 && <div className="share-progress-track"><div className="share-progress-fill" style={{ width: progress + "%" }} /></div>}
-            {total > 0 && <p>{formatBytes(transferred)} of {formatBytes(total)}</p>}
+            <div className={"share-progress-track" + (total <= 0 ? " is-indeterminate" : "")}><div className="share-progress-fill" style={{ width: total > 0 ? progress + "%" : "38%" }} /></div>
+            {total > 0 ? <p>{formatBytes(transferred)} of {formatBytes(total)}</p> : <p>Preparing the instance archive and secure share link. Large instances can take a little while.</p>}
           </div>
         )}
         {!busy && status !== "Ready" && <p className="share-status">{status}</p>}
