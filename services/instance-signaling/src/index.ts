@@ -38,7 +38,7 @@ export default {
         const room = env.ROOMS.get(id);
         const created = await room.fetch("https://room.internal/create", { method: "POST" });
         if (created.ok) {
-          const result = await created.json<{ expiresAt: number }>();
+          const result = await created.json() as { expiresAt: number };
           return json({ code, expiresAt: result.expiresAt }, 201);
         }
       }
@@ -99,7 +99,7 @@ export class ShareRoom {
     const pair = new WebSocketPair();
     const client = pair[0];
     const server = pair[1];
-    this.state.acceptWebSocket(server);
+    server.accept();
     this.sockets.set(role, server);
 
     server.addEventListener("message", (event) => {
