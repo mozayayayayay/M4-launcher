@@ -2779,6 +2779,205 @@ fn finish_instance_share_receive(
     Ok(instance)
 }
 
+
+fn encode_base64(bytes: &[u8]) -> String {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut output = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    for chunk in bytes.chunks(3) {
+        let a = chunk[0] as usize;
+        let b = chunk.get(1).copied().unwrap_or(0) as usize;
+        let c = chunk.get(2).copied().unwrap_or(0) as usize;
+        output.push(TABLE[a >> 2] as char);
+        output.push(TABLE[((a & 3) << 4) | (b >> 4)] as char);
+        output.push(if chunk.len() > 1 { TABLE[((b & 15) << 2) | (c >> 6)] as char } else { '=' });
+        output.push(if chunk.len() > 2 { TABLE[c & 63] as char } else { '=' });
+    }
+    output
+}
+
+#[tauri::command]
+async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String> {
+    let archive_path = PathBuf::from(path);
+    if !archive_path.is_file() { return Err("The selected .mrpack file could not be found.".into()); }
+    if !archive_path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("mrpack")) {
+        return Err("Choose a valid .mrpack file.".into());
+    }
+    let file_size = fs::metadata(&archive_path).map_err(|e| e.to_string())?.len();
+    if file_size == 0 || file_size > 512 * 1024 * 1024 {
+        return Err("The .mrpack archive is empty or larger than the 512 MB import limit.".into());
+    }
+    let archive_bytes = fs::read(&archive_path).map_err(|e| e.to_string())?;
+    let mut manifest_archive = zip::ZipArchive::new(Cursor::new(archive_bytes.clone()))
+        .map_err(|e| format!("Invalid .mrpack archive: {e}"))?;
+    let manifest_bytes = {
+        let mut file = manifest_archive.by_name("modrinth.index.json")
+            .map_err(|_| "This archive is missing modrinth.index.json.".to_string())?;
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+        bytes
+    };
+    let manifest: Value = serde_json::from_slice(&manifest_bytes)
+        .map_err(|e| format!("Invalid modpack manifest: {e}"))?;
+    if manifest["formatVersion"].as_u64() != Some(1) {
+        return Err("This .mrpack uses an unsupported Modrinth pack format.".into());
+    }
+    let mc_version = manifest["dependencies"]["minecraft"]["version"].as_str()
+        .ok_or("The modpack does not specify a Minecraft version.")?.to_string();
+    let dependencies = manifest["dependencies"].as_object()
+        .ok_or("The modpack dependencies are missing.")?;
+    let (loader_key, loader_version) = ["fabric", "forge", "neoforge", "quilt"].iter()
+        .find_map(|key| dependencies.get(*key).and_then(Value::as_str)
+            .map(|version| ((*key).to_string(), version.to_string())))
+        .unwrap_or_else(|| ("vanilla".to_string(), "—".to_string()));
+    let display_name = manifest["name"].as_str().unwrap_or("Imported Modpack").trim();
+    let display_name = if display_name.is_empty() { "Imported Modpack" } else { display_name };
+    let display_name = display_name.chars().take(80).collect::<String>();
+    let id = Uuid::new_v4().to_string();
+    let game_dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("instances").join(&id);
+    fs::create_dir_all(&game_dir).map_err(|e| e.to_string())?;
+    let instance = Instance {
+        id: id.clone(),
+        name: display_name.clone(),
+        version: mc_version.clone(),
+        loader: match loader_key.as_str() {
+            "fabric" => "Fabric", "forge" => "Forge", "neoforge" => "NeoForge", "quilt" => "Quilt", _ => "Vanilla"
+        }.into(),
+        loader_version: loader_version.clone(),
+        icon: String::new(),
+        status: "Not installed".into(),
+        game_dir: game_dir.to_string_lossy().to_string(),
+        memory_mb: 2048,
+        java_path: None,
+        launch_version_id: None,
+        mods: 0,
+    };
+    let mut data = load_data(&app)?;
+    data.instances.push(instance);
+    data.selected_instance = Some(id.clone());
+    if let Err(error) = save_data(&app, &data) {
+        let _ = fs::remove_dir_all(&game_dir);
+        return Err(error);
+    }
+
+    let install_result: Result<Instance, String> = async {
+        install_minecraft_version(app.clone(), id.clone(), mc_version.clone()).await?;
+        let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/1.2.2")
+            .build().map_err(|e| e.to_string())?;
+        let entries = manifest["files"].as_array().ok_or("The modpack manifest does not contain a file list.")?;
+        if entries.len() > 100_000 { return Err("The modpack contains too many files.".into()); }
+        let mut installed_mods = Vec::new();
+        for (index, entry) in entries.iter().enumerate() {
+            if entry["env"]["client"].as_str() == Some("unsupported") { continue; }
+            let relative = entry["path"].as_str().ok_or("The modpack contains a file without a path.")?;
+            let relative_path = safe_relative_path(relative)?;
+            if relative.replace('\\', "/").to_ascii_lowercase().starts_with("mods/")
+                && relative_path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("jar")) {
+                installed_mods.push(relative.replace('\\', "/"));
+            }
+            let download_url = entry["downloads"].as_array()
+                .and_then(|urls| urls.iter().filter_map(Value::as_str).find(|url| url.starts_with("https://")))
+                .ok_or_else(|| format!("No HTTPS download URL is available for {relative}."))?;
+            download_file(&client, download_url, &game_dir.join(relative_path), entry["hashes"]["sha1"].as_str()).await?;
+            if index % 5 == 0 || index + 1 == entries.len() {
+                emit_progress(&app, &id, index + 1, entries.len().max(1), "Importing modpack files");
+            }
+        }
+
+        let mut override_archive = zip::ZipArchive::new(Cursor::new(archive_bytes.clone())).map_err(|e| e.to_string())?;
+        let mut extracted_overrides = 0usize;
+        for index in 0..override_archive.len() {
+            let mut entry = override_archive.by_index(index).map_err(|e| e.to_string())?;
+            let entry_name = entry.name().replace('\\', "/");
+            let relative = entry_name.strip_prefix("overrides/").or_else(|| entry_name.strip_prefix("client-overrides/"));
+            let Some(relative) = relative else { continue; };
+            if relative.is_empty() || entry.is_dir() { continue; }
+            if entry.size() > 128 * 1024 * 1024 { return Err(format!("Modpack override is too large: {relative}")); }
+            let safe_path = safe_relative_path(relative)?;
+            if relative.to_ascii_lowercase().starts_with("mods/")
+                && safe_path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("jar")) {
+                installed_mods.push(relative.to_string());
+            }
+            let destination = game_dir.join(safe_path);
+            let parent = destination.parent().ok_or("Invalid override destination.")?;
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            let mut bytes = Vec::new();
+            entry.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+            fs::write(destination, bytes).map_err(|e| e.to_string())?;
+            extracted_overrides += 1;
+        }
+
+        let mut icon_archive = zip::ZipArchive::new(Cursor::new(archive_bytes.clone())).map_err(|e| e.to_string())?;
+        let icon = match icon_archive.by_name("icon.png") {
+            Ok(mut file) => {
+                if file.size() > 10 * 1024 * 1024 { return Err("The modpack icon is larger than 10 MB.".into()); }
+                let mut bytes = Vec::new();
+                file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+                if bytes.is_empty() { String::new() } else { format!("data:image/png;base64,{}", encode_base64(&bytes)) }
+            }
+            Err(_) => String::new(),
+        };
+
+        let mut current_data = load_data(&app)?;
+        let current_index = current_data.instances.iter().position(|item| item.id == id)
+            .ok_or("Imported instance disappeared from the library.")?;
+        current_data.instances[current_index].icon = icon;
+        current_data.instances[current_index].version = mc_version.clone();
+        current_data.instances[current_index].loader = match loader_key.as_str() {
+            "fabric" => "Fabric", "forge" => "Forge", "neoforge" => "NeoForge", "quilt" => "Quilt", _ => "Vanilla"
+        }.into();
+        current_data.instances[current_index].loader_version = loader_version.clone();
+        current_data.instances[current_index].status = "Installed".into();
+        current_data.instances[current_index].mods = installed_mods.len();
+        save_data(&app, &current_data)?;
+
+        if loader_key != "vanilla" {
+            install_modloader(app.clone(), id.clone(), loader_key.clone(), Some(loader_version.clone())).await?;
+        }
+        let mut final_data = load_data(&app)?;
+        let final_index = final_data.instances.iter().position(|item| item.id == id)
+            .ok_or("Imported instance disappeared from the library.")?;
+        final_data.instances[final_index].status = "Installed".into();
+        final_data.instances[final_index].mods = count_mods(&final_data.instances[final_index]);
+        let imported = final_data.instances[final_index].clone();
+        save_data(&app, &final_data)?;
+
+        let metadata = serde_json::json!({
+            "projectId": "local-import",
+            "versionId": manifest["versionId"].as_str().unwrap_or("unknown"),
+            "name": display_name,
+            "version": manifest["versionId"].as_str().unwrap_or("unknown"),
+            "minecraftVersion": mc_version,
+            "loader": imported.loader,
+            "loaderVersion": imported.loader_version,
+            "installedOverrides": extracted_overrides,
+            "mods": installed_mods,
+            "importedFrom": archive_path.file_name().and_then(|name| name.to_str()).unwrap_or("modpack.mrpack"),
+        });
+        fs::write(game_dir.join(".m0z4-modpack.json"), serde_json::to_vec_pretty(&metadata).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+        Ok(imported)
+    }.await;
+
+    match install_result {
+        Ok(imported) => {
+            emit_progress(&app, &id, 1, 1, "Modpack imported and ready to launch");
+            Ok(imported)
+        }
+        Err(error) => {
+            if let Ok(mut current_data) = load_data(&app) {
+                current_data.instances.retain(|item| item.id != id);
+                if current_data.selected_instance.as_deref() == Some(&id) {
+                    current_data.selected_instance = current_data.instances.first().map(|item| item.id.clone());
+                }
+                let _ = save_data(&app, &current_data);
+            }
+            let _ = fs::remove_dir_all(&game_dir);
+            Err(error)
+        }
+    }
+}
+
+
 // --------------------------------------------------
 // Tauri application
 // --------------------------------------------------
@@ -2811,6 +3010,7 @@ pub fn run() {
             install_modrinth_mod_version,
             install_modrinth_resource_version,
             install_modrinth_modpack,
+            import_mrpack,
             get_installed_modpack,
             remove_mod,
             get_installed_mods,
