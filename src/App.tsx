@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
 import {
   ChevronLeft, ChevronRight, Cpu, Gamepad2, Layers3, Home,
@@ -802,6 +803,31 @@ export default function App() {
     }
   }
 
+  async function importMrpack() {
+    if (busy) return;
+    try {
+      const selectedFile = await openFileDialog({
+        multiple: false,
+        directory: false,
+        filters: [{ name: "Modrinth modpack", extensions: ["mrpack"] }]
+      });
+      if (!selectedFile || Array.isArray(selectedFile)) return;
+      setBusy(true);
+      setProgress({ instanceId: "mrpack-import", completed: 0, total: 1, message: "Reading Modrinth modpack..." });
+      const imported = await invoke<Instance>("import_mrpack", { path: selectedFile });
+      await invoke("select_instance", { id: imported.id });
+      await refreshInstances();
+      setSelectedId(imported.id);
+      setPage("Home");
+      setNotice(`Imported "${imported.name}" (Minecraft ${imported.version}) successfully.`);
+    } catch (error) {
+      setNotice(`Couldn't import modpack: ${String(error)}`);
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
+
   async function openFolder() {
     if (!selected) return;
 
@@ -814,6 +840,7 @@ export default function App() {
 
   function openNewInstance() {
     setNewName("");
+    setVersionFilter("release");
     setNewLoader("Vanilla");
     setNewLoaderVersion("");
     setNewVersion(latestRelease || versions.find((version) => version.versionType === "release")?.id || "1.21.10");
@@ -950,6 +977,15 @@ export default function App() {
           >
             <Plus size={18} />
             {!collapsed && "Add instance"}
+          </button>
+          <button
+            className={`add-instance mrpack-import-button ${collapsed ? "icon-only" : ""}`}
+            onClick={importMrpack}
+            disabled={busy}
+            title="Import .mrpack"
+          >
+            <Package size={18} />
+            {!collapsed && "Import .mrpack"}
           </button>
 
           <div className="rail-bottom">
@@ -1701,16 +1737,29 @@ export default function App() {
                 </label>
 
                 <label>
-                  Minecraft version
+                  Version type
                   <select
-                    value={newVersion}
-                    onChange={(event) => setNewVersion(event.target.value)}
+                    value={versionFilter}
+                    onChange={(event) => {
+                      const nextFilter = event.target.value;
+                      const matching = versions.filter((version) => nextFilter === "all" || version.versionType === nextFilter);
+                      setVersionFilter(nextFilter);
+                      if (matching.length && !matching.some((version) => version.id === newVersion)) setNewVersion(matching[0].id);
+                    }}
                   >
-                    {versions.length > 0 ? versions.slice(0, 80).map((version) => (
-                      <option key={version.id} value={version.id}>
-                        {version.id} · {version.versionType}
-                      </option>
-                    )) : <option value={newVersion}>{newVersion} · Loading version list…</option>}
+                    <option value="release">Releases</option>
+                    <option value="snapshot">Snapshots</option>
+                    <option value="old_beta">Beta</option>
+                    <option value="old_alpha">Alpha</option>
+                    <option value="all">All versions</option>
+                  </select>
+                </label>
+                <label>
+                  Minecraft version
+                  <select value={newVersion} onChange={(event) => setNewVersion(event.target.value)}>
+                    {filteredVersions.length > 0 ? filteredVersions.map((version) => (
+                      <option key={version.id} value={version.id}>{version.id} · {version.versionType}</option>
+                    )) : <option value={newVersion}>{newVersion} · No versions in this category</option>}
                   </select>
                 </label>
 
@@ -1760,10 +1809,17 @@ export default function App() {
                   Version type
                   <select
                     value={versionFilter}
-                    onChange={(event) => setVersionFilter(event.target.value)}
+                    onChange={(event) => {
+                      const nextFilter = event.target.value;
+                      const matching = versions.filter((version) => nextFilter === "all" || version.versionType === nextFilter);
+                      setVersionFilter(nextFilter);
+                      if (matching.length && !matching.some((version) => version.id === installVersion)) setInstallVersion(matching[0].id);
+                    }}
                   >
                     <option value="release">Releases</option>
                     <option value="snapshot">Snapshots</option>
+                    <option value="old_beta">Beta</option>
+                    <option value="old_alpha">Alpha</option>
                     <option value="all">All versions</option>
                   </select>
                 </label>
