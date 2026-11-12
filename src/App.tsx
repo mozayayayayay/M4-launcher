@@ -116,7 +116,6 @@ export default function App() {
   const [installVersion, setInstallVersion] = useState("");
 
   const [modQuery, setModQuery] = useState("");
-  const [modpackSource, setModpackSource] = useState<"Modrinth" | "CurseForge">("Modrinth");
   const [modResults, setModResults] = useState<ModrinthMod[]>([]);
   const [modLoading, setModLoading] = useState(false);
   const [modError, setModError] = useState("");
@@ -603,12 +602,9 @@ export default function App() {
         offset: requestedPage * modPageSize,
         limit: modPageSize
       };
-      const result = projectType === "modpack" && modpackSource === "CurseForge"
-        ? await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_curseforge_modpacks", {
-            query: modQuery.trim(), gameVersion: modVersion || selected.version,
-            offset: requestedPage * modPageSize, limit: modPageSize
-          })
-        : await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_modrinth", searchArgs);
+
+
+      const result = await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_modrinth", searchArgs);
 
       const sortedHits = [...(result.hits ?? [])].sort(
         (a, b) => b.downloads - a.downloads
@@ -681,15 +677,11 @@ export default function App() {
     setSelectedProjectVersion("");
     setVersionsLoading(true);
     try {
-      const versions = page === "Modpacks" && modpackSource === "CurseForge"
-        ? (await invoke<Record<string, any>[]>("get_curseforge_modpack_files", { modId: mod.projectId })).map((file) => ({
-            id: String(file.id), name: file.displayName || file.fileName || "Modpack version",
-            versionNumber: file.fileName || "", fileName: file.fileName || ""
-          }))
-        : await invoke<ProjectVersion[]>("get_modrinth_project_versions", {
-            projectId: mod.projectId, gameVersion: modVersion || selected?.version,
-            loader: page === "Modpacks" ? null : selected?.loader
-          });
+
+      const versions = await invoke<ProjectVersion[]>("get_modrinth_project_versions", {
+        projectId: mod.projectId, gameVersion: modVersion || selected?.version,
+        loader: page === "Modpacks" ? null : selected?.loader
+      });
       setProjectVersions(versions);
       setSelectedProjectVersion(versions[0]?.id ?? "");
     } catch (error) {
@@ -709,11 +701,10 @@ export default function App() {
     setBusy(true);
     try {
       if (page === "Modpacks") {
-        const metadata = modpackSource === "CurseForge"
-          ? await invoke<Record<string, any>>("install_curseforge_modpack", { instanceId: selected.id, projectId: selectedProject.projectId, fileId: selectedProjectVersion })
-          : await invoke<Record<string, any>>("install_modrinth_modpack", {
-              instanceId: selected.id, projectId: selectedProject.projectId, versionId: selectedProjectVersion
-            });
+
+        const metadata = await invoke<Record<string, any>>("install_modrinth_modpack", {
+          instanceId: selected.id, projectId: selectedProject.projectId, versionId: selectedProjectVersion
+        });
         setInstalledModpack(metadata);
         await refreshInstances();
         await refreshInstalledMods(selected.id);
@@ -1143,7 +1134,7 @@ export default function App() {
                     <h1>{isModpacksPage ? "Modpacks" : "Mods"}</h1>
                     <p>
                       {isModpacksPage
-                        ? "Discover Minecraft modpacks on Modrinth or CurseForge."
+                        ? "Discover Minecraft modpacks on Modrinth."
                         : "Find mods on Modrinth for your selected instance."}
                     </p>
                   </div>
@@ -1201,15 +1192,7 @@ export default function App() {
                           marginTop: 14
                         }}
                       >
-                        {isModpacksPage && (
-                          <select value={modpackSource} onChange={(event) => {
-                            setModpackSource(event.target.value as "Modrinth" | "CurseForge");
-                            setModPage(0);
-                          }} aria-label="Modpack source">
-                            <option value="Modrinth">Modrinth</option>
-                            <option value="CurseForge">CurseForge</option>
-                          </select>
-                        )}
+
                         <input
                           value={modQuery}
                           onChange={(event) => setModQuery(event.target.value)}
@@ -1598,7 +1581,7 @@ export default function App() {
         <div className="modal-backdrop" onClick={() => !busy && setSelectedProject(null)}>
           <div className="modal project-download-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-heading">
-              <div><span className="eyebrow">{page === "Modpacks" ? modpackSource.toUpperCase() + " MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3></div>
+              <div><span className="eyebrow">{page === "Modpacks" ? "MODRINTH MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3></div>
               <button className="icon-button" onClick={() => setSelectedProject(null)} disabled={busy}><X size={18} /></button>
             </div>
             {versionsLoading ? <p>Loading compatible versions...</p> : (
