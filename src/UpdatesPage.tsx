@@ -28,7 +28,7 @@ export default function UpdatesPage({ onProgress, onNotice }: Props) {
   const [release, setRelease] = useState<Release | null>(null);
   const [checking, setChecking] = useState(true);
   const [failed, setFailed] = useState(false);
-  const [currentVersion, setCurrentVersion] = useState("0.1.5" );
+  const [currentVersion, setCurrentVersion] = useState("0.1.5");
   const [nativeApp, setNativeApp] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null);
   const [installing, setInstalling] = useState(false);
