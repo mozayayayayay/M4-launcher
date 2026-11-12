@@ -2243,7 +2243,7 @@ async fn install_modrinth_modpack(
         bytes
     };
     let manifest: Value = serde_json::from_slice(&manifest_bytes).map_err(|e| format!("Invalid modpack manifest: {e}"))?;
-    let mc_version = manifest["dependencies"]["minecraft"]["version"].as_str()
+    let mc_version = manifest["dependencies"]["minecraft"].as_str()
         .ok_or("Modpack manifest does not specify a Minecraft version")?.to_string();
     let loaders = manifest["dependencies"].as_object().ok_or("Modpack loader requirements are missing")?;
     let (loader, loader_version) = ["fabric", "forge", "neoforge", "quilt"].iter()
@@ -2821,7 +2821,7 @@ async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String>
     if manifest["formatVersion"].as_u64() != Some(1) {
         return Err("This .mrpack uses an unsupported Modrinth pack format.".into());
     }
-    let mc_version = manifest["dependencies"]["minecraft"]["version"].as_str()
+    let mc_version = manifest["dependencies"]["minecraft"].as_str()
         .ok_or("The modpack does not specify a Minecraft version.")?.to_string();
     let dependencies = manifest["dependencies"].as_object()
         .ok_or("The modpack dependencies are missing.")?;
