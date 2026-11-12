@@ -2025,125 +2025,6 @@ async fn install_modrinth_mod(
     Ok(installed.join(", "))
 }
 
-// --------------------------------------------------
-
-#[tauri::command]
-async fn search_curseforge_modpacks(
-    app: AppHandle, query: String, game_version: Option<String>,
-    offset: Option<u32>, limit: Option<u32>,
-) -> Result<ModrinthSearchResult, String> {
-    let key = settings_accounts::read_curseforge_api_key(&app)?;
-    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
-    let offset_s = offset.unwrap_or(0).to_string();
-    let limit_s = limit.unwrap_or(20).clamp(1, 50).to_string();
-    let mut request = client.get("https://api.curseforge.com/v1/mods/search")
-        .header("x-api-key", key)
-        .query(&[("gameId", "432"), ("classId", "4471"), ("searchFilter", query.as_str()),
-            ("index", offset_s.as_str()), ("pageSize", limit_s.as_str())]);
-    if let Some(version) = game_version.filter(|v| !v.is_empty()) {
-        request = request.query(&[("gameVersion", version)]);
-    }
-    let value: Value = request.send().await.map_err(|e| e.to_string())?
-        .error_for_status().map_err(|e| format!("CurseForge request failed: {e}"))?
-        .json().await.map_err(|e| e.to_string())?;
-    let hits = value["data"].as_array().cloned().unwrap_or_default().into_iter().map(|item| {
-        ModrinthHit {
-            project_id: item["id"].as_u64().unwrap_or(0).to_string(),
-            slug: item["slug"].as_str().unwrap_or("").to_string(),
-            title: item["name"].as_str().unwrap_or("Untitled modpack").to_string(),
-            author: item["authors"].as_array().and_then(|a| a.first()).and_then(|a| a["name"].as_str()).unwrap_or("CurseForge creator").to_string(),
-            downloads: item["downloadCount"].as_u64().unwrap_or(0),
-            icon_url: item["logo"]["url"].as_str().map(str::to_string),
-            latest_version: None,
-        }
-    }).collect();
-    Ok(ModrinthSearchResult { hits, total_hits: value["pagination"]["totalCount"].as_u64().unwrap_or(0) })
-}
-
-#[tauri::command]
-async fn get_curseforge_modpack_files(app: AppHandle, mod_id: String) -> Result<Vec<Value>, String> {
-    let key = settings_accounts::read_curseforge_api_key(&app)?;
-    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
-    let value: Value = client.get(format!("https://api.curseforge.com/v1/mods/{mod_id}/files"))
-        .header("x-api-key", key).query(&[("pageSize", "50"), ("index", "0")])
-        .send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?
-        .json().await.map_err(|e| e.to_string())?;
-    Ok(value["data"].as_array().cloned().unwrap_or_default())
-}
-
-
-#[tauri::command]
-async fn install_curseforge_modpack(app: AppHandle, instance_id: String, project_id: String, file_id: String) -> Result<Value, String> {
-    let key = settings_accounts::read_curseforge_api_key(&app)?;
-    let data = load_data(&app)?;
-    let instance = data.instances.iter().find(|i| i.id == instance_id).cloned().ok_or("Instance not found")?;
-    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
-    let meta: Value = client.get(format!("https://api.curseforge.com/v1/mods/{project_id}/files/{file_id}"))
-        .header("x-api-key", &key).send().await.map_err(|e| e.to_string())?
-        .error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
-    let url = meta["data"]["downloadUrl"].as_str().ok_or("CurseForge did not provide a direct modpack download URL.")?;
-    if !url.starts_with("https://") { return Err("Insecure modpack URL rejected.".into()); }
-    emit_progress(&app, &instance_id, 0, 1, "Downloading CurseForge modpack");
-    let bytes = client.get(url).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.bytes().await.map_err(|e| e.to_string())?;
-    if bytes.len() > 512 * 1024 * 1024 { return Err("Modpack archive exceeds the 512 MB safety limit.".into()); }
-    let mut archive = zip::ZipArchive::new(Cursor::new(bytes.to_vec())).map_err(|e| format!("Invalid CurseForge archive: {e}"))?;
-    let manifest: Value = {
-        let mut entry = archive.by_name("manifest.json").map_err(|_| "Archive has no manifest.json.")?;
-        let mut raw = Vec::new();
-        entry.take(4 * 1024 * 1024).read_to_end(&mut raw).map_err(|e| e.to_string())?;
-        serde_json::from_slice(&raw).map_err(|e| e.to_string())?
-    };
-    let pack_mc_version = manifest["minecraft"]["version"].as_str().ok_or("CurseForge manifest is missing its Minecraft version.")?;
-    if pack_mc_version != instance.version { return Err(format!("This modpack requires Minecraft {pack_mc_version}; the selected instance uses {}. Create a matching instance first.", instance.version)); }
-    let files = manifest["files"].as_array().ok_or("Invalid CurseForge manifest.")?;
-    let required_loader = manifest["minecraft"]["modLoaders"].as_array().and_then(|a| a.iter().find(|v| v["primary"].as_bool() == Some(true)).or_else(|| a.first())).and_then(|v| v["id"].as_str()).unwrap_or("");
-    if !required_loader.is_empty() {
-        let loader = required_loader.split('-').next().unwrap_or("");
-        if !instance.loader.eq_ignore_ascii_case(loader) { return Err(format!("This pack requires {loader}. Create an instance with that loader first.")); }
-    }
-    let game_dir = PathBuf::from(&instance.game_dir);
-    let mut installed = 0usize;
-    for item in files {
-        if item["required"].as_bool() == Some(false) { continue; }
-        let project = item["projectID"].as_u64().ok_or("Invalid project ID in manifest")?;
-        let file = item["fileID"].as_u64().ok_or("Invalid file ID in manifest")?;
-        let value: Value = client.get(format!("https://api.curseforge.com/v1/mods/{project}/files/{file}"))
-            .header("x-api-key", &key).send().await.map_err(|e| e.to_string())?
-            .error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
-        let download = value["data"]["downloadUrl"].as_str().ok_or("A required mod file is unavailable for direct download.")?;
-        if !download.starts_with("https://") { return Err("Insecure mod download rejected.".into()); }
-        let filename = value["data"]["fileName"].as_str().unwrap_or("mod.jar");
-        if filename.contains('/') || filename.contains('\\') || filename.contains("..") { return Err("Unsafe mod filename rejected.".into()); }
-        let content = client.get(download).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.bytes().await.map_err(|e| e.to_string())?;
-        if content.len() > 256 * 1024 * 1024 { return Err("Mod file exceeds the 256 MB safety limit.".into()); }
-        let mods = game_dir.join("mods");
-        tokio::fs::create_dir_all(&mods).await.map_err(|e| e.to_string())?;
-        tokio::fs::write(mods.join(filename), &content).await.map_err(|e| e.to_string())?;
-        installed += 1;
-        emit_progress(&app, &instance_id, installed, files.len(), "Downloading CurseForge mods");
-    }
-    let mut overrides = 0u32;
-    for n in 0..archive.len() {
-        let mut entry = archive.by_index(n).map_err(|e| e.to_string())?;
-        let name = entry.name().to_string();
-        let Some(relative) = name.strip_prefix("overrides/") else { continue; };
-        if relative.is_empty() || relative.contains('\\') || relative.split('/').any(|p| p == ".." || p.is_empty()) { continue; }
-        let destination = game_dir.join(relative);
-        if entry.is_dir() { tokio::fs::create_dir_all(destination).await.map_err(|e| e.to_string())?; }
-        else {
-            if entry.size() > 128 * 1024 * 1024 { return Err("Override file exceeds the 128 MB safety limit.".into()); }
-            if let Some(parent) = destination.parent() { tokio::fs::create_dir_all(parent).await.map_err(|e| e.to_string())?; }
-            let mut raw = Vec::new();
-            entry.take(128 * 1024 * 1024).read_to_end(&mut raw).map_err(|e| e.to_string())?;
-            tokio::fs::write(destination, raw).await.map_err(|e| e.to_string())?;
-            overrides += 1;
-        }
-    }
-    emit_progress(&app, &instance_id, 1, 1, "CurseForge modpack installed");
-    Ok(serde_json::json!({"name": manifest["name"], "minecraftVersion": manifest["minecraft"]["version"], "loader": required_loader, "installedMods": installed, "overrideFiles": overrides}))
-}
-
-
 // Modrinth version selection
 // --------------------------------------------------
 
@@ -2864,9 +2745,6 @@ pub fn run() {
             install_modloader,
             launch_minecraft,
             search_modrinth,
-            search_curseforge_modpacks,
-            get_curseforge_modpack_files,
-            install_curseforge_modpack,
             install_modrinth_mod,
             get_modrinth_project_versions,
             install_modrinth_mod_version,
