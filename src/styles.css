@@ -2916,3 +2916,128 @@ p, span, strong, small, label {
 :root[data-theme="snowy"] .app-shell .banner-planet { background:radial-gradient(circle at 30% 28%,#fff,#a5dbe3 30%,#69b8c7 68%,#3c8e9f 100%)!important; box-shadow:0 0 45px #00a9c755,inset -12px -12px 25px #397f8d66!important; }
 :root[data-theme="snowy"] .app-shell .banner-orbit { border-color:#00a9c788!important; }
 :root[data-theme="snowy"] .app-shell .selected-dot { background:#00a9c7!important; box-shadow:0 0 9px #00a9c788!important; }
+
+
+/* v0.1.11: low-cost, seamless star drift and theme-aware glass surfaces. */
+.galaxy-stars {
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.stars-one {
+  animation: m4-stars-drift-near 150s linear infinite;
+}
+
+.stars-two {
+  animation: m4-stars-drift-far 230s linear infinite;
+}
+
+@keyframes m4-stars-drift-near {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-320px, -170px, 0); }
+}
+
+@keyframes m4-stars-drift-far {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-380px, -230px, 0); }
+}
+
+/* The starfield already spans the full app shell; glass in the rail lets it show through. */
+.workspace {
+  background: transparent;
+}
+
+.instance-rail {
+  background: rgba(9, 11, 24, .52);
+  border-right-color: #ffffff18;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+:root[data-theme="dark"] .instance-rail {
+  background: rgba(0, 0, 0, .58);
+  border-right-color: #ffffff1c;
+}
+
+:root[data-theme="snowy"] .instance-rail {
+  background: rgba(242, 251, 255, .64);
+  border-right-color: #9dd9e7bb;
+  box-shadow: inset -1px 0 0 #ffffff90;
+}
+
+/* Keep the M4 brand mark identical regardless of the selected theme. */
+.brand-mark {
+  background:
+    radial-gradient(circle at 25% 15%, #ffffff 0%, transparent 42%),
+    linear-gradient(145deg, #f5f7ff, #b7c4f4 55%, #8999d5);
+  color: #101326;
+}
+
+.brand-mark-text {
+  color: #171b35;
+}
+
+.brand-star,
+.brand-star-one,
+.brand-star-two,
+.brand-star-three {
+  color: #ffffff;
+}
+
+.brand-star-two { color: #c5d0ff; }
+.brand-star-three { color: #dce4ff; }
+.brand-sparkle { color: #6678bd; }
+
+:root[data-theme="snowy"] .brand-mark {
+  background:
+    radial-gradient(circle at 25% 15%, #ffffff 0%, transparent 42%),
+    linear-gradient(145deg, #f5f7ff, #b7c4f4 55%, #8999d5);
+  color: #101326;
+  box-shadow: 0 0 18px #aeb9e955, 0 0 38px #849aff22, inset 0 1px 2px #ffffff;
+}
+
+:root[data-theme="snowy"] .brand-mark-text { color: #171b35 !important; }
+:root[data-theme="snowy"] .brand-star-one { color: #ffffff !important; }
+:root[data-theme="snowy"] .brand-star-two { color: #c5d0ff !important; }
+:root[data-theme="snowy"] .brand-star-three { color: #dce4ff !important; }
+:root[data-theme="snowy"] .brand-sparkle { color: #6678bd !important; }
+
+/* Notifications use the active theme's surface, border, accent and readable text. */
+.toast {
+  max-width: min(430px, calc(100vw - 32px));
+  background: rgba(27, 33, 59, .94);
+  border-color: color-mix(in srgb, var(--accent-color) 42%, #ffffff30);
+  color: #e4eaff;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.toast span { color: inherit; }
+.toast button { color: var(--accent-color); }
+
+:root[data-theme="dark"] .toast {
+  background: rgba(12, 14, 20, .96);
+  border-color: color-mix(in srgb, var(--accent-color) 48%, #ffffff24);
+  color: #f2f4fa;
+}
+
+:root[data-theme="dark"] .toast span { color: #f2f4fa; }
+:root[data-theme="dark"] .toast button { color: var(--accent-color); }
+
+:root[data-theme="snowy"] .toast {
+  background: rgba(247, 253, 255, .96);
+  border-color: #91d9e8;
+  color: #087f9d;
+  box-shadow: 0 10px 30px #4ba9bf2b;
+}
+
+:root[data-theme="snowy"] .toast span { color: #087f9d !important; }
+:root[data-theme="snowy"] .toast button { color: #079fbd !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stars-one,
+  .stars-two {
+    animation: none !important;
+    transform: none !important;
+  }
+}

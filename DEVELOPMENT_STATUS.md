@@ -57,3 +57,10 @@ Offline profiles are not Microsoft-authenticated accounts and cannot join online
 - Add an accent-colored memory slider with GB tick marks, synchronized with the numeric MB field.
 - Reskin Galaxy as Snowy using light gray surfaces, cyan accents and cyan text throughout while retaining the Galaxy nebula/star layout.
 - Add subtle mouse-parallax movement to the star layers in every theme.
+
+
+## v0.1.11 requested visual refinements
+- Replace pointer-driven star parallax with slow, seamless CSS-only drift on separate star layers; honor reduced-motion preferences.
+- Keep the M4 top-left logo artwork and colors unchanged when switching themes.
+- Make the instance sidebar translucent with a theme-matched glass effect so the full-shell starfield remains visible beneath it.
+- Style notification toasts to match Galaxy, Midnight and Snowy.

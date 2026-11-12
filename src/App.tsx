@@ -153,18 +153,6 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const shell = document.querySelector<HTMLElement>(".app-shell");
-    if (!shell) return;
-    const moveStars = (event: PointerEvent) => {
-      const x = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      const y = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
-      shell.style.setProperty("--star-shift-x", `${x * 18}px`);
-      shell.style.setProperty("--star-shift-y", `${y * 18}px`);
-    };
-    window.addEventListener("pointermove", moveStars, { passive: true });
-    return () => window.removeEventListener("pointermove", moveStars);
-  }, []);
 
   const projectsPageRef = useRef<HTMLDivElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
