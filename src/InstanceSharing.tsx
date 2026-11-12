@@ -114,8 +114,6 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
         signalingCompleteRef.current = true;
         setStatus("Direct encrypted connection established");
-        // Once ICE is connected, WebRTC carries the transfer directly; the signaling socket is no longer needed.
-        try { socketRef.current?.close(); } catch { /* ignore */ }
       }
     };
     peer.onconnectionstatechange = () => {
