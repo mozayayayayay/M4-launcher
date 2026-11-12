@@ -154,6 +154,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         setProgress(Math.min(100, (offset / info.size) * 100));
       }
       channel.send(JSON.stringify({ type: "complete" }));
+      sessionEndedRef.current = true;
       setStatus("Instance sent successfully");
       setBusy(false);
       await invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
@@ -200,7 +201,6 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       };
       const socket = new WebSocket(SIGNALING_BASE.replace(/^http/, "ws") + "/api/rooms/" + room.code + "/ws?role=sender");
       socketRef.current = socket;
-      await waitForOpen(socket);
       socket.onmessage = async (event) => {
         let message: SignalMessage;
         try { message = JSON.parse(String(event.data)); } catch { return; }
@@ -223,6 +223,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           fail("The signaling session closed before a direct connection was established.");
         }
       };
+      await waitForOpen(socket);
     } catch (cause) { fail("Couldn't start sharing: " + String(cause)); }
   }
 
@@ -317,10 +318,11 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       };
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
-        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && busy) {
+        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && !sessionEndedRef.current) {
           fail("The signaling session closed before a direct connection was established.");
         }
       };
+      await waitForOpen(socket);
     } catch (cause) { fail("Couldn't connect using that code: " + String(cause)); }
   }
 
