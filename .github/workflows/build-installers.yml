@@ -60,6 +60,15 @@ jobs:
         shell: pwsh
         run: choco install nsis -y --no-progress
 
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Validate frontend
+        run: npm run build
+
+      - name: Validate Tauri backend
+        run: cargo check --manifest-path src-tauri/Cargo.toml
+
       - name: Validate updater signing keys
         shell: bash
         env:
@@ -77,9 +86,6 @@ jobs:
           M0Z4_UPDATER_PUBLIC_KEY: ${{ vars.M0Z4_UPDATER_PUBLIC_KEY }}
         run: |
           node -e "const fs=require('fs'); const p='src-tauri/tauri.conf.json'; const c=JSON.parse(fs.readFileSync(p,'utf8')); c.plugins.updater.pubkey=process.env.M0Z4_UPDATER_PUBLIC_KEY; fs.writeFileSync(p, JSON.stringify(c,null,2)+'\\n');"
-
-      - name: Install JavaScript dependencies
-        run: npm install
 
       - name: Build and publish installer
         uses: tauri-apps/tauri-action@v0
