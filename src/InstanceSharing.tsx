@@ -23,7 +23,6 @@ type SignalMessage = { type: string; payload?: any };
 
 const SIGNALING_BASE = (import.meta.env.VITE_M4_SIGNALING_URL as string | undefined)?.replace(/\/+$/, "");
 const CHUNK_SIZE = 16 * 1024;
-const MAX_BUFFERED = 512 * 1024;
 
 function formatBytes(value: number): string {
   if (value < 1024) return value + " B";
@@ -268,6 +267,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           try { await invoke("native_share_add_ice", { peerId: peerIdRef.current, candidate: message.payload }); } catch { /* stale candidate */ }
         } else if (message.type === "close" && !sessionEndedRef.current && !signalingCompleteRef.current) fail("The sender disconnected.");
       };
+      socket.onopen = flushSignals;
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
         if (!signalingCompleteRef.current && !sessionEndedRef.current) fail("The signaling session closed before the direct connection was established.");
