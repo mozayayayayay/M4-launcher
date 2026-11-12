@@ -71,3 +71,12 @@ Offline profiles are not Microsoft-authenticated accounts and cannot join online
 - Explicitly clear opaque background images and colors that previously overrode the transparency.
 - Keep the animated starfield visible through the sidebar in Galaxy, Midnight and Snowy, with theme-matched tint and blur.
 - Bump package, lockfile and Tauri versions to 0.2.2; CI publishes Linux DEB, Windows NSIS setup and the signed updater manifest.
+
+
+## v1.2.2 version selector and .mrpack import
+- Removed the 80-version cutoff from instance creation and exposed all entries returned by Mojang's version manifest.
+- Added Releases, Snapshots, Beta, Alpha and All versions filters to instance creation and Minecraft installation.
+- Added an Import .mrpack button directly below Add Instance.
+- Local Modrinth .mrpack imports read the pack name, Minecraft version and loader requirements; install listed files and client overrides; apply root icon.png when present; save modpack metadata; and install the selected loader so the imported instance has a launch profile.
+- Bumped package, lockfile, Cargo and Tauri versions to 1.2.2.
+- Full clean builds, real-pack import tests, Minecraft launch tests and signed Linux/Windows installer tests remain required before calling the release verified.
