@@ -2093,7 +2093,9 @@ async fn install_curseforge_modpack(app: AppHandle, instance_id: String, project
         entry.take(4 * 1024 * 1024).read_to_end(&mut raw).map_err(|e| e.to_string())?;
         serde_json::from_slice(&raw).map_err(|e| e.to_string())?
     };
-    let pack_mc_version = manifest["minecraft"]["version"].as_str().ok_or("CurseForge manifest is missing its Minecraft version.")?;\n    if pack_mc_version != instance.version { return Err(format!("This modpack requires Minecraft {pack_mc_version}; the selected instance uses {}. Create a matching instance first.", instance.version)); }\n    let files = manifest["files"].as_array().ok_or("Invalid CurseForge manifest.")?;
+    let pack_mc_version = manifest["minecraft"]["version"].as_str().ok_or("CurseForge manifest is missing its Minecraft version.")?;
+    if pack_mc_version != instance.version { return Err(format!("This modpack requires Minecraft {pack_mc_version}; the selected instance uses {}. Create a matching instance first.", instance.version)); }
+    let files = manifest["files"].as_array().ok_or("Invalid CurseForge manifest.")?;
     let required_loader = manifest["minecraft"]["modLoaders"].as_array().and_then(|a| a.iter().find(|v| v["primary"].as_bool() == Some(true)).or_else(|| a.first())).and_then(|v| v["id"].as_str()).unwrap_or("");
     if !required_loader.is_empty() {
         let loader = required_loader.split('-').next().unwrap_or("");
