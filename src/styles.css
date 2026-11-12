@@ -3041,3 +3041,56 @@ p, span, strong, small, label {
     transform: none !important;
   }
 }
+
+
+/* v0.2.1: seamless tiled star motion and a lighter glass instance rail. */
+.galaxy-stars {
+  backface-visibility: hidden;
+  will-change: background-position;
+  transform: none !important;
+  background-repeat: repeat !important;
+}
+
+.stars-one {
+  animation: m4-stars-loop-near 90s linear infinite !important;
+}
+
+.stars-two {
+  animation: m4-stars-loop-far 135s linear infinite !important;
+}
+
+@keyframes m4-stars-loop-near {
+  from { background-position: 0 0; }
+  to { background-position: -320px -170px; }
+}
+
+@keyframes m4-stars-loop-far {
+  from { background-position: 0 0; }
+  to { background-position: -380px -230px; }
+}
+
+.instance-rail {
+  background: rgba(9, 11, 24, .43) !important;
+  border-right-color: #ffffff18;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+:root[data-theme="dark"] .instance-rail {
+  background: rgba(7, 7, 7, .46) !important;
+  border-right-color: #ffffff1c;
+}
+
+:root[data-theme="snowy"] .instance-rail {
+  background: rgba(229, 235, 237, .54) !important;
+  border-right-color: #a9d8e0bb;
+  box-shadow: inset -1px 0 0 #ffffff80;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars-one,
+  .stars-two {
+    animation: none !important;
+    transform: none !important;
+  }
+}
