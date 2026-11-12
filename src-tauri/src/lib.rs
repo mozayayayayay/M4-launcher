@@ -2572,6 +2572,13 @@ fn begin_instance_share_receive(
 }
 
 #[tauri::command]
+fn discard_instance_share_receive(app: AppHandle, archive_id: String) -> Result<(), String> {
+    let path = share_archive_path(&app, &archive_id)?;
+    if path.exists() { fs::remove_file(path).map_err(|e| e.to_string())?; }
+    Ok(())
+}
+
+#[tauri::command]
 fn write_instance_share_chunk(
     app: AppHandle,
     archive_id: String,
@@ -2744,6 +2751,7 @@ pub fn run() {
             read_instance_share_chunk,
             delete_instance_share_archive,
             begin_instance_share_receive,
+            discard_instance_share_receive,
             write_instance_share_chunk,
             finish_instance_share_receive,
 
