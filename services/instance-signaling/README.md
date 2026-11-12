@@ -1,0 +1,23 @@
+# M4 direct instance sharing — signaling service
+
+This Worker is signaling-only. It forwards WebRTC offer/answer/ICE negotiation messages between two M4 clients. It does not accept file chunks, archives, or arbitrary binary payloads. Minecraft data must travel through the encrypted WebRTC data channel directly between the two devices.
+
+## Deploy
+
+1. Create a Cloudflare account and install Wrangler.
+2. From this directory run `npx wrangler login`.
+3. Run `npx wrangler deploy`.
+4. Set the resulting Worker URL in M4's build-time `VITE_M4_SIGNALING_URL` value (for example, `https://m4-instance-signaling.<account>.workers.dev`).
+
+The code is eight characters, expires after ten minutes, and permits one receiver. No room history is retained. Durable Object state stores only the expiry and one-time-join flag. Signaling messages are limited to 48 KiB and an explicit allowlist.
+
+## Direct-only networking
+
+The client must configure STUN only and must not configure TURN servers. STUN helps peers discover possible network paths; it does not carry instance files. If ICE cannot establish a direct connection, M4 must end the transfer and explain that the network blocks direct peer-to-peer connections. It must never fall back to a hosted file relay.
+
+## Before production
+
+- Deploy this Worker and configure its URL in the M4 build.
+- Test two real devices on different networks, including a restrictive NAT.
+- Verify no archive/file payload is sent to this Worker.
+- Add abuse/rate controls if the service becomes public.
