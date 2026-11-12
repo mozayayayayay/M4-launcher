@@ -1,5 +1,6 @@
 
 mod settings_accounts;
+mod native_share;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -2727,6 +2728,7 @@ fn finish_instance_share_receive(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(native_share::NativeShareState::default())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new()
@@ -2759,6 +2761,14 @@ pub fn run() {
             discard_instance_share_receive,
             write_instance_share_chunk,
             finish_instance_share_receive,
+            native_share::native_share_create_peer,
+            native_share::native_share_create_offer,
+            native_share::native_share_create_answer,
+            native_share::native_share_set_remote,
+            native_share::native_share_add_ice,
+            native_share::native_share_send_text,
+            native_share::native_share_send_binary,
+            native_share::native_share_close_peer,
 
             // Settings and accounts
             settings_accounts::get_launcher_settings,
