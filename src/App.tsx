@@ -1658,7 +1658,7 @@ export default function App() {
                     ))}
                   </select>
                 </label>
-                {projectVersions.length === 0 && <div className="modal-note">No compatible versions were found for the selected Minecraft version and loader.</div>}
+                {projectVersions.length === 0 && <div className="modal-note">No compatible versions were found for the selected Minecraft version.</div>}
                 <button className="primary-button full" onClick={installSelectedProject} disabled={!selectedProjectVersion || busy || !selected}>
                   <Download size={16} /> {busy ? "Installing..." : "Download"}
                 </button>
