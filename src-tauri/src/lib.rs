@@ -2381,6 +2381,7 @@ struct ShareArchiveInfo {
     loader: String,
     loader_version: String,
     mod_count: usize,
+    include_saves: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2522,6 +2523,7 @@ fn create_instance_share_archive(
         loader: instance.loader.clone(),
         loader_version: instance.loader_version.clone(),
         mod_count: count_mods(instance),
+        include_saves,
     })
 }
 
