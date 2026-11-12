@@ -1,7 +1,7 @@
 # M0Z4 Launcher — development status
 
 ## Agreed scope
-- Modrinth is the active source for mods, modpacks, texture packs and shaders. TLauncher / TLMods is shown as an unavailable source option until an officially supported public integration can be verified; do not use private endpoints or scrape access-controlled data. CurseForge support and API-key settings are out of scope.
+- Modrinth is the only supported source for mods, modpacks, texture packs and shaders. TLauncher / TLMods integration was scrapped. CurseForge support and API-key settings are out of scope.
 - Local offline profiles only. Built-in Microsoft authentication is out of scope.
 - No Nightly section, Nightly instances, Nightly runtime integration or external Horizon launcher hand-off.
 - Mod and modpack search results use a Download action and compatible-version picker; no descriptions or gallery views.
@@ -48,3 +48,12 @@ Offline profiles are not Microsoft-authenticated accounts and cannot join online
 - `npm ci` timed out in the editing environment, leaving an incomplete `node_modules` tree; `npm run build` consequently stopped on missing installed type-definition packages. This is an incomplete dependency installation, not a successful production build.
 - Rust/Cargo are not installed in the editing environment, so the Tauri backend, actual Minecraft process launch, and native installers could not be compiled or run here.
 - The GitHub Actions workflow builds a Linux `.deb` and a Windows NSIS `*-setup.exe`; the Windows job installs NSIS before bundling. These artifacts still need a successful CI run and installation tests.
+
+
+## v0.1.10 requested UI work
+- Remove TLauncher / TLMods completely; Modrinth remains the only content source.
+- Move Settings from the top navigation to a gear action anchored at the bottom of the instance sidebar.
+- Compact selection menus and text inputs and prevent option labels from clipping vertically.
+- Add an accent-colored memory slider with GB tick marks, synchronized with the numeric MB field.
+- Reskin Galaxy as Snowy using light gray surfaces, cyan accents and cyan text throughout while retaining the Galaxy nebula/star layout.
+- Add subtle mouse-parallax movement to the star layers in every theme.
