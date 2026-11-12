@@ -157,12 +157,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         setProgress(Math.min(100, (offset / info.size) * 100));
       }
       channel.send(JSON.stringify({ type: "complete" }));
-      sessionEndedRef.current = true;
-      setStatus("Instance sent successfully");
-      setBusy(false);
-      await invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
-      archiveRef.current = null;
-      onNotice("Shared \"" + info.name + "\" successfully.");
+      setStatus("Files sent. Waiting for the recipient to verify and import the instance...");
     } catch (cause) { fail("Transfer failed: " + String(cause)); }
   }
 
@@ -201,6 +196,17 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         try { message = JSON.parse(event.data); } catch { return; }
         if (message.type === "accept") void sendArchive(info, channel);
         if (message.type === "reject") fail("The recipient declined the instance.");
+        if (message.type === "imported") {
+          sessionEndedRef.current = true;
+          setStatus("Instance sent successfully");
+          setBusy(false);
+          void invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
+          archiveRef.current = null;
+          onNotice("Shared \"" + info.name + "\" successfully.");
+        }
+      };
+      channel.onclose = () => {
+        if (!sessionEndedRef.current) fail("The recipient disconnected before confirming the import.");
       };
       const socket = new WebSocket(SIGNALING_BASE.replace(/^http/, "ws") + "/api/rooms/" + room.code + "/ws?role=sender");
       socketRef.current = socket;
@@ -280,6 +286,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
                 setBusy(false);
                 onImported(imported.id);
                 onNotice("Imported \"" + imported.name + "\" into your instance list.");
+                channelRef.current?.send(JSON.stringify({ type: "imported" }));
                 sendSignal("close");
               } catch (cause) { fail("Couldn't import the shared instance: " + String(cause)); }
             }
