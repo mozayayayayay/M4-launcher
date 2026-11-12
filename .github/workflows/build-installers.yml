@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           if [[ -z "${M4_SIGNALING_URL}" ]]; then
-            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing 0.1.5."
+            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing 0.1.6."
             exit 1
           fi
           curl --fail --silent --show-error "${M4_SIGNALING_URL%/}/health"
@@ -107,14 +107,16 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.1.5
+            M0Z4 Launcher v0.1.6
 
             - Share complete Minecraft instances directly between M4 users with a one-time code.
             - Encrypted WebRTC peer-to-peer transfer; signaling carries connection metadata only.
             - Share mods, configs, resource packs, shaders, and optional single-player worlds.
             - Recipient approval, transfer progress, archive SHA-256 verification, and safe import.
             - Direct-only networking: no cloud file storage and no file-relay fallback.
-            - Updates page shows release changes directly inside the update card.
+            - Share-link creation stays responsive and shows an animated preparation progress bar.
+            - Midnight is now pure black with white text; Snowy uses a softer, less bright palette.
+            - Settings number fields have clearer, more polished controls.
 
             Choose the Linux .deb package or Windows setup.exe installer below.
             Signed update packages and latest.json enable in-app updates.
