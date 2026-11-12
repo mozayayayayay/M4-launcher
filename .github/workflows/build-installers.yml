@@ -109,7 +109,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.1.10
+            M0Z4 Launcher v0.1.11
 
             - Removed the TLauncher / TLMods integration idea; Modrinth remains the only content catalog.
             - Moved Settings from the top navigation to a gear button at the bottom of the instance sidebar.
