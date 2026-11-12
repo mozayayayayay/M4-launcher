@@ -2073,12 +2073,12 @@ async fn get_curseforge_modpack_files(app: AppHandle, mod_id: String) -> Result<
 
 
 #[tauri::command]
-async fn install_curseforge_modpack(app: AppHandle, instance_id: String, file_id: String) -> Result<Value, String> {
+async fn install_curseforge_modpack(app: AppHandle, instance_id: String, project_id: String, file_id: String) -> Result<Value, String> {
     let key = settings_accounts::read_curseforge_api_key(&app)?;
     let data = load_data(&app)?;
     let instance = data.instances.iter().find(|i| i.id == instance_id).cloned().ok_or("Instance not found")?;
     let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
-    let meta: Value = client.get(format!("https://api.curseforge.com/v1/mods/0/files/{file_id}"))
+    let meta: Value = client.get(format!("https://api.curseforge.com/v1/mods/{project_id}/files/{file_id}"))
         .header("x-api-key", &key).send().await.map_err(|e| e.to_string())?
         .error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
     let url = meta["data"]["downloadUrl"].as_str().ok_or("CurseForge did not provide a direct modpack download URL.")?;
