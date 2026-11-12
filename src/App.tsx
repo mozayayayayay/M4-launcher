@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import {
   ChevronLeft, ChevronRight, Cpu, Gamepad2, Layers3, Home,
-  Library, Plus, Settings, UserRound, X,
+  Library, Plus, Settings, UserRound, X, Image, Sparkles,
   Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, Share2
 } from "lucide-react";
 
@@ -73,7 +73,7 @@ type ConsoleEntry = {
   receivedAt: number;
 };
 
-type Page = "Home" | "Mods" | "Modpacks" | "Console" | "Settings" | "Accounts" | "Updates";
+type Page = "Home" | "Mods" | "Modpacks" | "Texture Packs" | "Shaders" | "Console" | "Settings" | "Accounts" | "Updates";
 
 const MOD_CATEGORIES = [
   ["adventure", "Adventure"],
@@ -609,7 +609,7 @@ export default function App() {
     }
 
     const requestedPage = pageOverride ?? modPage;
-    const projectType = page === "Modpacks" ? "modpack" : "mod";
+    const projectType = page === "Modpacks" ? "modpack" : page === "Texture Packs" ? "resourcepack" : page === "Shaders" ? "shader" : "mod";
 
     setModLoading(true);
     setModError("");
@@ -652,7 +652,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (page === "Mods" || page === "Modpacks") {
+    if (["Mods", "Modpacks", "Texture Packs", "Shaders"].includes(page)) {
       if (selected) {
         void searchProjects();
       } else {
@@ -674,7 +674,7 @@ export default function App() {
 
   useEffect(() => {
     if (
-      (page === "Mods" || page === "Modpacks") &&
+      (["Mods", "Modpacks", "Texture Packs", "Shaders"].includes(page)) &&
       versions.length === 0
     ) {
       void loadVersions();
@@ -683,7 +683,7 @@ export default function App() {
 
   useEffect(() => {
     if (
-      (page === "Mods" || page === "Modpacks") &&
+      (["Mods", "Modpacks", "Texture Packs", "Shaders"].includes(page)) &&
       projectsPageRef.current
     ) {
       projectsPageRef.current.scrollTo({
@@ -703,7 +703,7 @@ export default function App() {
       const [versions, details] = await Promise.all([
         invoke<ProjectVersion[]>("get_modrinth_project_versions", {
           projectId: mod.projectId, gameVersion: modVersion || selected?.version,
-          loader: page === "Modpacks" ? null : selected?.loader
+          loader: page === "Mods" ? selected?.loader : null
         }),
         invoke<Record<string, any>>("get_modrinth_project_details", {
           projectId: mod.projectId
@@ -737,6 +737,14 @@ export default function App() {
         await refreshInstances();
         await refreshInstalledMods(selected.id);
         setNotice(`Installed modpack: ${metadata.name ?? selectedProject.title}`);
+      } else if (page === "Texture Packs" || page === "Shaders") {
+        const contentType = page === "Texture Packs" ? "resourcepack" : "shader";
+        const filename = await invoke<string>("install_modrinth_resource_version", {
+          instanceId: selected.id,
+          versionId: selectedProjectVersion,
+          contentType
+        });
+        setNotice("Installed " + filename + " in " + (contentType === "resourcepack" ? "resourcepacks" : "shaderpacks") + ".");
       } else {
         const files = await invoke<string[]>("install_modrinth_mod_version", {
           instanceId: selected.id,
@@ -744,7 +752,7 @@ export default function App() {
         });
         await refreshInstalledMods(selected.id);
         await refreshInstances();
-        setNotice(`Installed ${files.length} mod file(s), including required dependencies.`);
+        setNotice("Installed " + files.length + " mod file(s), including required dependencies.");
       }
       setSelectedProject(null);
     } catch (error) {
@@ -822,6 +830,9 @@ export default function App() {
   );
 
   const isModpacksPage = page === "Modpacks";
+  const isModsPage = page === "Mods";
+  const isTexturePacksPage = page === "Texture Packs";
+  const isShadersPage = page === "Shaders";
   const isSelectedInstalled =
     selected?.status?.toLowerCase() === "installed" &&
     (selected?.loader?.toLowerCase() === "vanilla" || Boolean(selected?.launchVersionId));
@@ -859,7 +870,7 @@ export default function App() {
         </div>
 
         <nav className="top-nav">
-          {(["Home", "Mods", "Modpacks", "Updates", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
+          {(["Home", "Mods", "Modpacks", "Texture Packs", "Shaders", "Updates", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
             <button
               key={item}
               className={`nav-item ${page === item ? "active" : ""}`}
@@ -872,6 +883,8 @@ export default function App() {
               {item === "Home" && <Home size={16} />}
               {item === "Mods" && <Library size={16} />}
               {item === "Modpacks" && <Package size={16} />}
+              {item === "Texture Packs" && <Image size={16} />}
+              {item === "Shaders" && <Sparkles size={16} />}
               {item === "Updates" && <Download size={16} />}
               {item === "Console" && <Terminal size={16} />}
               {item === "Settings" && <Settings size={16} />}
@@ -1152,18 +1165,16 @@ export default function App() {
               </>
             )}
 
-            {(page === "Mods" || page === "Modpacks") && (
+            {(["Mods", "Modpacks", "Texture Packs", "Shaders"].includes(page)) && (
               <div className="mods-page" ref={projectsPageRef}>
                 <div className="page-heading">
                   <div>
                     <div className="eyebrow">
-                      {isModpacksPage ? "DISCOVER MODPACKS" : "DISCOVER & MANAGE"}
+                      {isModpacksPage ? "DISCOVER MODPACKS" : isTexturePacksPage ? "DISCOVER TEXTURE PACKS" : isShadersPage ? "DISCOVER SHADERS" : "DISCOVER & MANAGE"}
                     </div>
-                    <h1>{isModpacksPage ? "Modpacks" : "Mods"}</h1>
+                    <h1>{isModpacksPage ? "Modpacks" : isTexturePacksPage ? "Texture Packs" : isShadersPage ? "Shaders" : "Mods"}</h1>
                     <p>
-                      {isModpacksPage
-                        ? "Discover Minecraft modpacks on Modrinth."
-                        : "Find mods on Modrinth for your selected instance."}
+                      {isModpacksPage ? "Discover Minecraft modpacks on Modrinth." : isTexturePacksPage ? "Browse and install Minecraft texture packs from Modrinth." : isShadersPage ? "Browse and install compatible Minecraft shaders from Modrinth." : "Find mods on Modrinth for your selected instance."}
                     </p>
                   </div>
                 </div>
@@ -1174,7 +1185,7 @@ export default function App() {
                   </div>
                 ) : (
                   <>
-                    {!isModpacksPage && (
+                    {isModsPage && (
                       <div className="mods-subnav" role="tablist" aria-label="Mods sections">
                         <button
                           type="button"
@@ -1200,11 +1211,22 @@ export default function App() {
                       </div>
                     )}
 
-                    {(isModpacksPage || modsTab === "discover") && (
+                    {(!isModsPage || modsTab === "discover") && (
                       <>
-                    <div className="info-card" style={{ marginBottom: 18 }}>
+                                        <div className="info-card" style={{ marginBottom: 18 }}>
+                      <div className="eyebrow">CONTENT SOURCE</div>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 8 }}>
+                        <select value="modrinth" disabled aria-label="Content source" style={{ minWidth: 180 }}>
+                          <option value="modrinth">Modrinth</option>
+                          <option value="tlauncher" disabled>TLauncher / TLMods — unavailable</option>
+                        </select>
+                        <small>TLauncher browsing will be enabled when an officially supported public integration is available.</small>
+                      </div>
+                    </div>
+
+<div className="info-card" style={{ marginBottom: 18 }}>
                       <div className="eyebrow">
-                        {isModpacksPage ? "MODPACK DISCOVERY" : "SEARCHING FOR"}
+                        {isModpacksPage ? "MODPACK DISCOVERY" : isTexturePacksPage ? "TEXTURE PACK DISCOVERY" : isShadersPage ? "SHADER DISCOVERY" : "SEARCHING FOR"}
                       </div>
 
                       <strong>{selected.name}</strong>
@@ -1230,11 +1252,7 @@ export default function App() {
                               void searchProjects(0);
                             }
                           }}
-                          placeholder={
-                            isModpacksPage
-                              ? "Search modpacks..."
-                              : "Search mods..."
-                          }
+                          placeholder={isModpacksPage ? "Search modpacks..." : isTexturePacksPage ? "Search texture packs..." : isShadersPage ? "Search shaders..." : "Search mods..."}
                           style={{ flex: 1, minWidth: 0 }}
                         />
 
@@ -1259,7 +1277,7 @@ export default function App() {
                           flexWrap: "wrap"
                         }}
                       >
-                        {!isModpacksPage && (
+                        {isModsPage && (
                           <select
                             value={modCategory}
                             onChange={(event) => {
@@ -1317,7 +1335,7 @@ export default function App() {
                         </select>
                       </div>
 
-                      {modVersion !== selected.version && (
+                      {isModsPage && modVersion !== selected.version && (
                         <small style={{ display: "block", marginTop: 10 }}>
                           Browsing another version. Individual mod installation
                           is disabled until you return to your instance version.
@@ -1355,9 +1373,7 @@ export default function App() {
                               />
                             ) : (
                               <div className="info-icon">
-                                {isModpacksPage
-                                  ? <Package size={20} />
-                                  : <Library size={20} />}
+                                {isModpacksPage ? <Package size={20} /> : isTexturePacksPage ? <Image size={20} /> : isShadersPage ? <Sparkles size={20} /> : <Library size={20} />}
                               </div>
                             )}
 
@@ -1431,7 +1447,7 @@ export default function App() {
                     </>
                     )}
 
-                    {!isModpacksPage && modsTab === "installed" && (
+                    {isModsPage && modsTab === "installed" && (
                       <section className="installed-mods-menu" role="tabpanel">
                         <div className="section-title">
                           <div>
