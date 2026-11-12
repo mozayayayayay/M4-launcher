@@ -196,12 +196,21 @@ pub async fn native_share_send_binary(
 pub async fn native_share_close_peer(
     state: State<'_, NativeShareState>, peer_id: String
 ) -> Result<(), String> {
-    if let Some(channel) = state.channels.lock().map_err(|_| "Native sharing state is unavailable.")?
-        .remove(&peer_id) {
+    let channel = {
+        state.channels.lock()
+            .map_err(|_| "Native sharing state is unavailable.")?
+            .remove(&peer_id)
+    };
+    if let Some(channel) = channel {
         let _ = channel.close().await;
     }
-    if let Some(peer) = state.peers.lock().map_err(|_| "Native sharing state is unavailable.")?
-        .remove(&peer_id) {
+
+    let peer = {
+        state.peers.lock()
+            .map_err(|_| "Native sharing state is unavailable.")?
+            .remove(&peer_id)
+    };
+    if let Some(peer) = peer {
         peer.close().await.map_err(|e| e.to_string())?;
     }
     Ok(())
