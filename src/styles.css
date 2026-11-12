@@ -2690,3 +2690,174 @@ p, span, strong, small, label {
 }
 :root[data-theme="dark"] .project-title-button { color: #fff !important; }
 :root[data-theme="snowy"] .project-title-button { color: #176d80 !important; }
+
+
+/* M4 0.1.8 — compact selection controls and consistent theme reskins. */
+.app-shell select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 36px;
+  height: 36px;
+  line-height: 1.2;
+  padding: 0 36px 0 12px;
+  font-size: 10px;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 12px;
+  text-overflow: ellipsis;
+}
+.app-shell select option {
+  line-height: 1.35;
+  padding: 5px 9px;
+}
+.modal select,
+.settings-card select {
+  min-height: 36px;
+  height: 36px;
+  line-height: 1.2;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.project-download-modal {
+  max-height: min(82vh, 720px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.project-download-modal .modal-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-bottom: 10px;
+}
+
+/* Midnight is Galaxy in monochrome: keep the nebula, stars and layered depth. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --accent-color: #d7d7d7;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .app-shell {
+  background:
+    radial-gradient(ellipse at 70% 15%, #242424 0%, transparent 44%),
+    radial-gradient(ellipse at 15% 90%, #171717 0%, transparent 42%),
+    #030303 !important;
+  color: #f5f5f5 !important;
+}
+:root[data-theme="dark"] .galaxy-background {
+  opacity: .9 !important;
+  filter: grayscale(1) brightness(1.55) contrast(1.08) !important;
+}
+:root[data-theme="dark"] .galaxy-nebula {
+  background: #777 !important;
+  opacity: .19 !important;
+}
+:root[data-theme="dark"] .stars-one,
+:root[data-theme="dark"] .stars-two,
+:root[data-theme="dark"] .instance-banner::before {
+  filter: grayscale(1) brightness(2.2) !important;
+}
+:root[data-theme="dark"] .app-shell :is(
+  .topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,
+  .bottom-play,.console-window,.update-release-card,.update-version,
+  .share-modal,.install-progress-card,.instance-item.selected,.modal-note,
+  .share-incoming-card,.share-code-panel,.hero-card.instance-banner,
+  .instance-banner,.project-download-modal
+) {
+  background-color: #090909 !important;
+  color: #f5f5f5 !important;
+  border-color: #343434 !important;
+}
+:root[data-theme="dark"] .app-shell .hero-card.instance-banner {
+  background:
+    radial-gradient(ellipse at 76% 50%, #55555545, transparent 48%),
+    radial-gradient(ellipse at 14% 12%, #77777725, transparent 52%),
+    linear-gradient(115deg, #171717 0%, #101010 56%, #080808 100%) !important;
+  box-shadow: 0 18px 60px #000b, inset 0 0 55px #ffffff08 !important;
+}
+:root[data-theme="dark"] .app-shell :is(
+  .topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,
+  .bottom-play,.console-window,.update-release-card,.update-version,
+  .share-modal,.install-progress-card,.instance-item,.instance-icon,
+  .mini-instance,.banner-logo,.placeholder-icon,.add-instance
+) {
+  background-image: none;
+  background-color: #101010 !important;
+  border-color: #383838 !important;
+  color: #f4f4f4 !important;
+}
+:root[data-theme="dark"] .app-shell :is(
+  h1,h2,h3,h4,h5,h6,p,span,strong,small,label,a,li,.eyebrow,
+  .info-label,.section-title,.page-heading,.brand,.nav-item,
+  .instance-item,.play-instance,.share-description,.share-status,
+  .update-message,.banner-copy p,.banner-copy h2,.brand-byline
+) { color: #f2f2f2 !important; }
+:root[data-theme="dark"] .app-shell :is(
+  button,.primary-button,.secondary-button,.icon-button,.more-button,
+  .play-button,.update-download,.nav-item.active
+) {
+  color: #f5f5f5 !important;
+  background: linear-gradient(180deg, #242424, #111) !important;
+  border: 1px solid #484848 !important;
+  box-shadow: inset 0 1px 0 #ffffff12, 0 3px 10px #0009 !important;
+}
+:root[data-theme="dark"] .app-shell button:hover:not(:disabled) {
+  color: #fff !important;
+  background: linear-gradient(180deg, #353535, #1a1a1a) !important;
+  border-color: #777 !important;
+}
+:root[data-theme="dark"] .app-shell button:disabled {
+  color: #777 !important;
+  background: #0b0b0b !important;
+  border-color: #252525 !important;
+}
+:root[data-theme="dark"] .app-shell input,
+:root[data-theme="dark"] .app-shell select,
+:root[data-theme="dark"] .app-shell textarea {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  color: #f5f5f5 !important;
+  background-color: #101010 !important;
+  border-color: #454545 !important;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .app-shell select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23eeeeee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 12px !important;
+}
+:root[data-theme="dark"] .app-shell select option {
+  color: #f5f5f5 !important;
+  background: #101010 !important;
+}
+:root[data-theme="dark"] .app-shell ::placeholder { color: #999 !important; }
+:root[data-theme="dark"] .app-shell .banner-planet {
+  background: radial-gradient(circle at 30% 28%, #eee, #777 28%, #333 65%, #111 100%) !important;
+  box-shadow: 0 0 45px #aaa4, inset -12px -12px 25px #000b !important;
+}
+:root[data-theme="dark"] .app-shell .banner-orbit {
+  border-color: #c9c9c977 !important;
+}
+:root[data-theme="dark"] .app-shell .selected-dot {
+  background: #fff !important;
+  box-shadow: 0 0 9px #fff9 !important;
+}
+
+/* Snowy: exactly one chevron; compact controls keep their labels vertically centered. */
+:root[data-theme="snowy"] .app-shell select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  min-height: 36px;
+  height: 36px;
+  line-height: 1.2;
+  padding: 0 36px 0 12px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23176d80' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px 12px !important;
+}
+:root[data-theme="snowy"] .app-shell select option {
+  background: #fff !important;
+  color: #176d80 !important;
+}
