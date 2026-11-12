@@ -948,9 +948,9 @@ export default function App() {
                 title={instance.name}
               >
                 <span className="instance-icon">
-                  {instanceIcons[instance.id] ? (
+                  {instanceIcons[instance.id] || instance.icon?.startsWith("data:image/") ? (
                     <img
-                      src={instanceIcons[instance.id]}
+                      src={instanceIcons[instance.id] || instance.icon}
                       alt=""
                       className="custom-instance-icon"
                     />
