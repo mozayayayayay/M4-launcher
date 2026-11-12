@@ -106,7 +106,9 @@ export default function SettingsPage({ selected, onNotice }: Props) {
   >({});
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);\n  const [curseForgeKey, setCurseForgeKey] = useState("");\n  const [curseForgeConfigured, setCurseForgeConfigured] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [curseForgeKey, setCurseForgeKey] = useState("");
+  const [curseForgeConfigured, setCurseForgeConfigured] = useState(false);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -129,7 +131,9 @@ export default function SettingsPage({ selected, onNotice }: Props) {
         );
 
         if (active) {
-          setSettings(normalizeSettings(saved));\n          const keyStatus = await invoke<{ configured: boolean }>("get_curseforge_key_status");\n          setCurseForgeConfigured(keyStatus.configured);
+          setSettings(normalizeSettings(saved));
+          const keyStatus = await invoke<{ configured: boolean }>("get_curseforge_key_status");
+          setCurseForgeConfigured(keyStatus.configured);
         }
       } catch (error) {
         if (active) {
@@ -195,7 +199,12 @@ export default function SettingsPage({ selected, onNotice }: Props) {
     setSaving(true);
 
     try {
-      await invoke("save_launcher_settings", { settings });\n      if (curseForgeKey.trim()) {\n        await invoke("save_curseforge_api_key", { apiKey: curseForgeKey.trim() });\n        setCurseForgeKey("");\n        setCurseForgeConfigured(true);\n      }
+      await invoke("save_launcher_settings", { settings });
+      if (curseForgeKey.trim()) {
+        await invoke("save_curseforge_api_key", { apiKey: curseForgeKey.trim() });
+        setCurseForgeKey("");
+        setCurseForgeConfigured(true);
+      }
 
       if (selected) {
         await invoke("save_minecraft_options", {
