@@ -109,11 +109,11 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.2.1
+            M0Z4 Launcher v0.2.2
 
-            - Reworked the starfield to loop endlessly using seamless repeating background tiles, with more noticeable movement and no off-screen reset.
-            - Made the instance sidebar more translucent with a theme-matched glass effect in Galaxy, Midnight and Snowy.
-            - Preserved the existing M4 logo, layout, notifications and other launcher features.
+            - Fixed the instance sidebar's actual background layer so it stays visibly translucent over the animated starfield in Galaxy, Midnight and Snowy.
+            - Increased glass clarity with a lighter theme-matched tint and backdrop blur, overriding conflicting theme surface rules.
+            - Preserved the M4 logo, sidebar layout and controls, star animation, notifications and all other launcher features.
             - Includes signed update packages and latest.json support for in-app updates.
             Choose the Linux .deb package or Windows setup.exe installer below.
           releaseDraft: false

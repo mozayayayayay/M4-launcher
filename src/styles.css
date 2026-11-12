@@ -3107,3 +3107,33 @@ p, span, strong, small, label {
   border-right-color: #a9d8e0bb !important;
   box-shadow: inset -1px 0 0 #ffffff80 !important;
 }
+
+
+/* v0.2.2: force the real instance rail to remain a translucent glass layer.
+   The rail sits directly over the animated starfield; theme skins must not
+   replace this surface with an opaque fill. */
+:root[data-theme="galaxy"] body .app-shell .workspace > aside.instance-rail {
+  background: rgba(9, 11, 24, .26) !important;
+  background-color: rgba(9, 11, 24, .26) !important;
+  background-image: none !important;
+  border-right-color: #ffffff24 !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+}
+:root[data-theme="dark"] body .app-shell .workspace > aside.instance-rail {
+  background: rgba(7, 7, 7, .30) !important;
+  background-color: rgba(7, 7, 7, .30) !important;
+  background-image: none !important;
+  border-right-color: #ffffff24 !important;
+  backdrop-filter: blur(12px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
+}
+:root[data-theme="snowy"] body .app-shell .workspace > aside.instance-rail {
+  background: rgba(229, 235, 237, .38) !important;
+  background-color: rgba(229, 235, 237, .38) !important;
+  background-image: none !important;
+  border-right-color: #a9d8e0bb !important;
+  box-shadow: inset -1px 0 0 #ffffff80 !important;
+  backdrop-filter: blur(12px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+}

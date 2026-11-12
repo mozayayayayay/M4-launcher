@@ -64,3 +64,10 @@ Offline profiles are not Microsoft-authenticated accounts and cannot join online
 - Keep the M4 top-left logo artwork and colors unchanged when switching themes.
 - Make the instance sidebar translucent with a theme-matched glass effect so the full-shell starfield remains visible beneath it.
 - Style notification toasts to match Galaxy, Midnight and Snowy.
+
+
+## v0.2.2 sidebar transparency fix
+- Apply the glass surface directly to the actual Home instance rail element with higher-specificity theme selectors.
+- Explicitly clear opaque background images and colors that previously overrode the transparency.
+- Keep the animated starfield visible through the sidebar in Galaxy, Midnight and Snowy, with theme-matched tint and blur.
+- Bump package, lockfile and Tauri versions to 0.2.2; CI publishes Linux DEB, Windows NSIS setup and the signed updater manifest.
