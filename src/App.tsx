@@ -637,9 +637,10 @@ export default function App() {
 
       if (sortedHits.length === 0) {
         setModError(
-          projectType === "mod"
-            ? "No compatible mods found for these filters."
-            : "No compatible modpacks found for these filters."
+          projectType === "mod" ? "No compatible mods found for these filters."
+            : projectType === "modpack" ? "No compatible modpacks found for these filters."
+            : projectType === "resourcepack" ? "No compatible texture packs found for these filters."
+            : "No compatible shaders found for these filters."
         );
       }
     } catch (error) {
@@ -722,8 +723,8 @@ export default function App() {
 
   async function installSelectedProject() {
     if (!selected || !selectedProject || !selectedProjectVersion) return;
-    if (page === "Mods" && modVersion !== selected.version) {
-      setNotice("Select your instance's Minecraft version before installing a mod.");
+    if (["Mods", "Texture Packs", "Shaders"].includes(page) && modVersion !== selected.version) {
+      setNotice("Select the instance Minecraft version before installing this content.");
       return;
     }
     setBusy(true);
@@ -1648,7 +1649,7 @@ export default function App() {
                   </div>
                 )}
                 <label>
-                  {page === "Modpacks" ? "Modpack version" : "Mod version"}
+                  {page === "Modpacks" ? "Modpack version" : page === "Texture Packs" ? "Texture pack version" : page === "Shaders" ? "Shader version" : "Mod version"}
                   <select value={selectedProjectVersion} onChange={(event) => setSelectedProjectVersion(event.target.value)}>
                     {projectVersions.map((version: any) => (
                       <option key={version.id} value={version.id}>
