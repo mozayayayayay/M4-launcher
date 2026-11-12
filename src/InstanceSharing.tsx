@@ -142,7 +142,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         if (message.type === "imported" && info) {
           sessionEndedRef.current = true; setStatus("Instance sent successfully"); setBusy(false);
           void invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
-          archiveRef.current = null; pendingArchiveRef.current = null; onNotice("Shared \\"" + info.name + "\\" successfully.");
+          archiveRef.current = null; pendingArchiveRef.current = null; onNotice('Shared "' + info.name + '" successfully.');
         }
       } else if (message.type === "manifest") {
         const received = message.payload as IncomingManifest;
@@ -160,7 +160,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
           if (sessionEndedRef.current || receiveRef.current !== archiveId) return;
           const imported = await invoke<{ id: string; name: string }>("finish_instance_share_receive", { archiveId, expectedSha256: current.sha256 });
           receiveRef.current = null; sessionEndedRef.current = true; setStatus("Instance imported successfully"); setBusy(false);
-          onImported(imported.id); onNotice("Imported \\"" + imported.name + "\\" into your instance list.");
+          onImported(imported.id); onNotice('Imported "' + imported.name + '" into your instance list.');
           await sendNativeText({ type: "imported" }); sendSignal("close");
         } catch (cause) { fail("Couldn't import the shared instance: " + String(cause)); }
       }
