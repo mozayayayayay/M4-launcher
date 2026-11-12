@@ -2496,3 +2496,32 @@ p, span, strong, small, label {
   55% { transform: translateX(165%); }
   100% { transform: translateX(300%); }
 }
+
+
+/* Consistent, polished controls throughout Settings */
+.settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+.settings-card select,
+.settings-card textarea {
+  width: 100%; min-height: 42px; padding: 10px 13px;
+  border: 1px solid #ffffff25; border-radius: 10px;
+  background: linear-gradient(180deg, #121b31, #0b1222); color: #f4f6ff;
+  font: inherit; font-size: 13px; line-height: 1.4;
+  box-shadow: inset 0 1px 2px #0005, 0 1px 0 #ffffff08;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.settings-card textarea { min-height: 88px; resize: vertical; }
+.settings-card input::placeholder, .settings-card textarea::placeholder { color: #8995ad; opacity: .85; }
+.settings-card input:focus, .settings-card select:focus, .settings-card textarea:focus {
+  outline: none; border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent), inset 0 1px 2px #0004;
+}
+:root[data-theme="snowy"] .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+:root[data-theme="snowy"] .settings-card select, :root[data-theme="snowy"] .settings-card textarea {
+  background: linear-gradient(180deg, #f7fafb, #eaf1f3); color: #174e5d;
+  border-color: #bfd1d8; box-shadow: inset 0 1px 2px #3452;
+}
+:root[data-theme="snowy"] .settings-card input::placeholder, :root[data-theme="snowy"] .settings-card textarea::placeholder { color: #6d8992; }
+:root[data-theme="dark"] .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+:root[data-theme="dark"] .settings-card select, :root[data-theme="dark"] .settings-card textarea {
+  background: linear-gradient(180deg, #101010, #080808); color: #fff; border-color: #343434;
+}
