@@ -435,7 +435,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         )}
         {!busy && status !== "Ready" && <p className="share-status">{status}</p>}
         {error && <div className="modal-note share-error">{error}</div>}
-        <div className="share-security-note"><ShieldCheck size={14} /> Encrypted direct transfer · No file hosting or relay</div>
+        <div className="share-security-note"><ShieldCheck size={14} /> Encrypted direct transfer · No file relay. Your public IP may be visible to the other participant.</div>
         <div className="share-footer">
           <button className="secondary-button" onClick={() => { if (busy) fail("Transfer cancelled."); onClose(); }}>Close</button>
         </div>
