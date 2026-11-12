@@ -142,7 +142,10 @@ export class ShareRoom {
       if (peer && peer.readyState === WebSocket.READY_STATE_OPEN) {
         try { peer.send(JSON.stringify({ type: "close" })); } catch { /* ignore */ }
       }
-      if (this.sockets.size === 0) void this.state.storage.deleteAll();
+      if (this.sockets.size === 0) {
+        void this.state.storage.deleteAlarm();
+        void this.state.storage.deleteAll();
+      }
     });
 
     server.addEventListener("error", () => {
@@ -165,6 +168,7 @@ export class ShareRoom {
       try { socket.close(code, reason); } catch { /* ignore */ }
     }
     this.sockets.clear();
+    void this.state.storage.deleteAlarm();
     void this.state.storage.deleteAll();
   }
 
