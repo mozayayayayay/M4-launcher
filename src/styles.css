@@ -2680,3 +2680,13 @@ p, span, strong, small, label {
   display: block;
 }
 :root[data-theme="snowy"] .project-gallery a { border-color: #bfd5dc; }
+
+:root[data-theme="dark"] .project-title-button,
+:root[data-theme="snowy"] .project-title-button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+:root[data-theme="dark"] .project-title-button { color: #fff !important; }
+:root[data-theme="snowy"] .project-title-button { color: #176d80 !important; }
