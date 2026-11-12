@@ -2279,9 +2279,9 @@ async fn install_modrinth_modpack(
     let dependencies = manifest["dependencies"].as_object()
         .ok_or("The modpack dependencies are missing.")?;
     // Accept the canonical Modrinth manifest and common third-party variants.
-    let minecraft_dependency = dependencies.get("minecraft").unwrap_or(&Value::Null);
-    let mc_version = minecraft_dependency.as_str()
-        .or_else(|| minecraft_dependency["version"].as_str())
+    let mc_version = dependencies.get("minecraft")
+        .and_then(|dependency| dependency.as_str()
+            .or_else(|| dependency["version"].as_str()))
         .or_else(|| manifest["minecraftVersion"].as_str())
         .or_else(|| manifest["minecraft_version"].as_str())
         .map(str::trim).filter(|value| !value.is_empty())
