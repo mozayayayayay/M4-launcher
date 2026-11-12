@@ -109,29 +109,18 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.1.9
+            M0Z4 Launcher v0.1.10
 
-            - Added dedicated Texture Packs and Shaders sections to the top navigation.
-            - Browse Modrinth resource packs and shaders with Minecraft-version-compatible version selection.
-            - Install resource packs into resourcepacks and shaders into shaderpacks for the selected instance.
-            - Added a TLauncher / TLMods source entry, kept unavailable until an officially supported public integration can be verified; no private endpoints or scraping.
-            - Skin changer idea was removed; Accounts remains unchanged.
+            - Removed the TLauncher / TLMods integration idea; Modrinth remains the only content catalog.
+            - Moved Settings from the top navigation to a gear button at the bottom of the instance sidebar.
+            - Tightened selection menus and text fields and fixed vertical text clipping.
+            - Added an accent-colored memory allocation slider with GB tick marks, synchronized with the MB field.
+            - Reskinned Galaxy as Snowy with light-gray surfaces, cyan accents and cyan text throughout.
+            - Added subtle mouse-reactive parallax to the starfield in every theme.
 
-            - Share complete Minecraft instances directly between M4 users with a one-time code.
-            - Encrypted WebRTC peer-to-peer transfer; signaling carries connection metadata only.
-            - Share mods, configs, resource packs, shaders, and optional single-player worlds.
-            - Recipient approval, transfer progress, archive SHA-256 verification, and safe import.
-            - Direct-only networking: no cloud file storage and no file-relay fallback.
-            - Share-link creation stays responsive and shows an animated preparation progress bar.
-            - Fixed native WebRTC sharing startup/cleanup on Linux and Windows; transfer remains direct-only.
-            - Midnight is a monochrome Galaxy reskin with black and gray surfaces, white stars, gray nebulae, and matching Home instance cards, buttons, and controls.
-            - Compact selection controls prevent labels from clipping; Snowy and Midnight show exactly one correctly styled chevron.
-            - Text-entry fields use a consistent polished style and the placeholder "insert here".
-            - Modrinth mod and modpack titles open a details menu with descriptions, compatible versions, and available gallery images.
-            - Removed CurseForge modpack support; Modrinth remains the sole modpack catalog.
-
+            - Includes the v0.1.9 texture-pack, shader and direct instance-sharing features.
+            - Signed update packages and latest.json support in-app updates.
             Choose the Linux .deb package or Windows setup.exe installer below.
-            Signed update packages and latest.json enable in-app updates.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
