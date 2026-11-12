@@ -192,25 +192,28 @@ pub async fn native_share_send_binary(
     channel.send(BytesMut::from(bytes.as_slice())).await.map_err(|e| e.to_string())
 }
 
+fn take_channel(state: &NativeShareState, peer_id: &str) -> Result<Option<Arc<dyn DataChannel>>, String> {
+    let mut channels = state.channels.lock()
+        .map_err(|_| "Native sharing state is unavailable.")?;
+    Ok(channels.remove(peer_id))
+}
+
+fn take_peer(state: &NativeShareState, peer_id: &str) -> Result<Option<Arc<dyn PeerConnection>>, String> {
+    let mut peers = state.peers.lock()
+        .map_err(|_| "Native sharing state is unavailable.")?;
+    Ok(peers.remove(peer_id))
+}
+
 #[tauri::command]
 pub async fn native_share_close_peer(
     state: State<'_, NativeShareState>, peer_id: String
 ) -> Result<(), String> {
-    let channel = {
-        state.channels.lock()
-            .map_err(|_| "Native sharing state is unavailable.")?
-            .remove(&peer_id)
-    };
-    if let Some(channel) = channel {
+    // Extract each handle in a synchronous helper so no std::sync::MutexGuard
+    // can survive into the async close calls (Tauri commands must be Send).
+    if let Some(channel) = take_channel(&state, &peer_id)? {
         let _ = channel.close().await;
     }
-
-    let peer = {
-        state.peers.lock()
-            .map_err(|_| "Native sharing state is unavailable.")?
-            .remove(&peer_id)
-    };
-    if let Some(peer) = peer {
+    if let Some(peer) = take_peer(&state, &peer_id)? {
         peer.close().await.map_err(|e| e.to_string())?;
     }
     Ok(())
