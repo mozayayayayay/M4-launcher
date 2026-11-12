@@ -11,7 +11,7 @@ use webrtc::{
     },
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct NativeShareState {
     peers: Arc<Mutex<HashMap<String, Arc<dyn PeerConnection>>>>,
     channels: Arc<Mutex<HashMap<String, Arc<dyn DataChannel>>>>,
