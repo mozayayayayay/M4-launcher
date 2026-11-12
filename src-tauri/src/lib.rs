@@ -2415,13 +2415,14 @@ fn share_file_is_private(relative: &str, include_saves: bool) -> bool {
     let first = parts[0].as_str();
     let base = parts.last().map(String::as_str).unwrap_or("");
     if !include_saves && first == "saves" { return true; }
-    if ["logs", "crash-reports", "screenshots", "cache", "caches", ".cache", "webcache"].contains(&first) {
+    if parts.iter().any(|part| ["logs", "crash-reports", "screenshots", "cache", "caches", ".cache", "webcache"].contains(&part.as_str())) {
         return true;
     }
     [
         "launcher_accounts.json", "launcher_profiles.json", "accounts.json",
         "credentials.json", "tokens.json", "msa_credentials.bin",
         "launcher_msa_credentials.bin", "access_token.json", "refresh_token.json",
+        "session.json", "microsoft_auth.json", "msa.json",
     ].contains(&base)
 }
 
