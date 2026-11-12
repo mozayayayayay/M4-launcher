@@ -2,13 +2,8 @@ name: Build installers and publish updater manifest
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/build-installers.yml
-      - package.json
-      - src/**
-      - src-tauri/**
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
