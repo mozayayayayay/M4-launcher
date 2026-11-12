@@ -58,7 +58,20 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
 
+      - name: Verify direct-sharing signaling service
+        env:
+          M4_SIGNALING_URL: ${{ vars.M4_SIGNALING_URL }}
+        shell: bash
+        run: |
+          if [[ -z "${M4_SIGNALING_URL}" ]]; then
+            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing 0.1.5."
+            exit 1
+          fi
+          curl --fail --silent --show-error "${M4_SIGNALING_URL%/}/health"
+
       - name: Validate frontend
+        env:
+          VITE_M4_SIGNALING_URL: ${{ vars.M4_SIGNALING_URL }}
         run: npm run build
 
       - name: Validate Tauri backend
@@ -86,6 +99,7 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_M4_SIGNALING_URL: ${{ vars.M4_SIGNALING_URL }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           M0Z4_UPDATER_PUBLIC_KEY: ${{ vars.M0Z4_UPDATER_PUBLIC_KEY }}
@@ -93,10 +107,17 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher release.
+            M0Z4 Launcher v0.1.5
 
-            Choose the Linux .deb package or the Windows NSIS setup.exe installer below.
-            Signed update packages and latest.json enable one-click in-app updates.
+            - Share complete Minecraft instances directly between M4 users with a one-time code.
+            - Encrypted WebRTC peer-to-peer transfer; signaling carries connection metadata only.
+            - Share mods, configs, resource packs, shaders, and optional single-player worlds.
+            - Recipient approval, transfer progress, archive SHA-256 verification, and safe import.
+            - Direct-only networking: no cloud file storage and no file-relay fallback.
+            - Updates page shows release changes directly inside the update card.
+
+            Choose the Linux .deb package or Windows setup.exe installer below.
+            Signed update packages and latest.json enable in-app updates.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
