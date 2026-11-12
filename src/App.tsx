@@ -153,6 +153,19 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const shell = document.querySelector<HTMLElement>(".app-shell");
+    if (!shell) return;
+    const moveStars = (event: PointerEvent) => {
+      const x = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
+      const y = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
+      shell.style.setProperty("--star-shift-x", `${x * 18}px`);
+      shell.style.setProperty("--star-shift-y", `${y * 18}px`);
+    };
+    window.addEventListener("pointermove", moveStars, { passive: true });
+    return () => window.removeEventListener("pointermove", moveStars);
+  }, []);
+
   const projectsPageRef = useRef<HTMLDivElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
 
@@ -871,7 +884,7 @@ export default function App() {
         </div>
 
         <nav className="top-nav">
-          {(["Home", "Mods", "Modpacks", "Texture Packs", "Shaders", "Updates", "Console", "Settings", "Accounts"] as Page[]).map((item) => (
+          {(["Home", "Mods", "Modpacks", "Texture Packs", "Shaders", "Updates", "Console", "Accounts"] as Page[]).map((item) => (
             <button
               key={item}
               className={`nav-item ${page === item ? "active" : ""}`}
@@ -888,7 +901,6 @@ export default function App() {
               {item === "Shaders" && <Sparkles size={16} />}
               {item === "Updates" && <Download size={16} />}
               {item === "Console" && <Terminal size={16} />}
-              {item === "Settings" && <Settings size={16} />}
               {item === "Accounts" && <UserRound size={16} />}
               {item}
             </button>
@@ -952,12 +964,13 @@ export default function App() {
             {!collapsed && "Add instance"}
           </button>
 
-          {!collapsed && (
-            <div className="rail-footer">
-              <span className="online-dot" />
-              {loading ? "Loading library..." : "Launcher ready"}
-            </div>
-          )}
+          <div className="rail-bottom">
+            <button className={`rail-settings-button ${page === "Settings" ? "active" : ""}`} onClick={() => { setPage("Settings"); setMenuOpen(false); }} title="Settings" aria-label="Settings">
+              <Settings size={18} />
+              {!collapsed && <span>Settings</span>}
+            </button>
+            {!collapsed && <div className="rail-footer"><span className="online-dot" />{loading ? "Loading library..." : "Launcher ready"}</div>}
+          </div>
         </aside>
 
         <main className="main-content">
@@ -1214,17 +1227,6 @@ export default function App() {
 
                     {(!isModsPage || modsTab === "discover") && (
                       <>
-                                        <div className="info-card" style={{ marginBottom: 18 }}>
-                      <div className="eyebrow">CONTENT SOURCE</div>
-                      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginTop: 8 }}>
-                        <select value="modrinth" disabled aria-label="Content source" style={{ minWidth: 180 }}>
-                          <option value="modrinth">Modrinth</option>
-                          <option value="tlauncher" disabled>TLauncher / TLMods — unavailable</option>
-                        </select>
-                        <small>TLauncher browsing will be enabled when an officially supported public integration is available.</small>
-                      </div>
-                    </div>
-
 <div className="info-card" style={{ marginBottom: 18 }}>
                       <div className="eyebrow">
                         {isModpacksPage ? "MODPACK DISCOVERY" : isTexturePacksPage ? "TEXTURE PACK DISCOVERY" : isShadersPage ? "SHADER DISCOVERY" : "SEARCHING FOR"}
