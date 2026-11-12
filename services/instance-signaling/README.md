@@ -13,6 +13,8 @@ The code is eight characters, expires after ten minutes, and permits one receive
 
 ## Direct-only networking
 
+WebRTC direct connections can expose each participant's public IP address to the other peer. The M4 dialog warns users and recommends sharing only with people they trust.
+
 The client must configure STUN only and must not configure TURN servers. STUN helps peers discover possible network paths; it does not carry instance files. If ICE cannot establish a direct connection, M4 must end the transfer and explain that the network blocks direct peer-to-peer connections. It must never fall back to a hosted file relay.
 
 ## Before production
