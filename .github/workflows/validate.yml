@@ -30,6 +30,24 @@ jobs:
       - name: Check Tauri backend
         run: cargo check --manifest-path src-tauri/Cargo.toml
 
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build frontend
+        env:
+          VITE_M4_SIGNALING_URL: https://example.invalid
+        run: npm run build
+      - name: Check Tauri backend
+        run: cargo check --manifest-path src-tauri/Cargo.toml
+
   signaling-service:
     runs-on: ubuntu-latest
     steps:
