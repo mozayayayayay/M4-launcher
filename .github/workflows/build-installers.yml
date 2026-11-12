@@ -109,13 +109,12 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.2
+            M0Z4 Launcher v1.2.3
 
-            - Restored the complete Mojang Minecraft version manifest in the instance creator, including historical releases.
-            - Added Releases, Snapshots, Beta, Alpha and All versions filters.
-            - Added local .mrpack importing below Add Instance, including pack name, Minecraft version, loader, icon, files and client overrides.
-            - Imported modpacks are registered as regular instances and their selected loader is installed so they can launch from M4.
-            - Includes signed update packages and latest.json support for in-app updates.
+            - Improved Forge installer execution and diagnostic capture, including installer logs from the instance directory.
+            - Hardened .mrpack Minecraft-version parsing for string and object dependency formats and common exported manifest variants.
+            - Recognized canonical fabric-loader and quilt-loader dependency keys and accepted packs with an empty file list.
+            - Bumped the launcher to v1.2.3 for Linux and Windows builds.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
