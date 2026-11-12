@@ -28,7 +28,8 @@ function makeCode(): string {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === "OPTIONS") return json({}, 204);
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type" } });
+    if (url.pathname === "/health" && request.method === "GET") return json({ ok: true, service: "m4-instance-signaling" });
 
     if (url.pathname === "/api/rooms" && request.method === "POST") {
       // A small collision retry loop; each code is a short-lived, single-use capability.
