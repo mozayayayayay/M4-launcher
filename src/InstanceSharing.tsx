@@ -73,6 +73,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     try { peerRef.current?.close(); } catch { /* ignore */ }
     try { socketRef.current?.close(); } catch { /* ignore */ }
     if (archiveRef.current) void invoke("delete_instance_share_archive", { archiveId: archiveRef.current }).catch(() => {});
+    if (receiveRef.current) void invoke("discard_instance_share_receive", { archiveId: receiveRef.current }).catch(() => {});
   }, []);
 
   function fail(message: string) {
@@ -305,7 +306,6 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
 
       const socket = new WebSocket(SIGNALING_BASE.replace(/^http/, "ws") + "/api/rooms/" + normalized + "/ws?role=receiver");
       socketRef.current = socket;
-      await waitForOpen(socket);
       socket.onmessage = async (event) => {
         let message: SignalMessage;
         try { message = JSON.parse(String(event.data)); } catch { return; }
