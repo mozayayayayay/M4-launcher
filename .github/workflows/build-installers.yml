@@ -22,7 +22,7 @@ jobs:
         include:
           - name: Linux DEB
             platform: ubuntu-24.04
-            args: --bundles deb
+            args: --bundles deb,appimage
           - name: Windows setup
             platform: windows-latest
             args: --bundles nsis
@@ -140,16 +140,17 @@ jobs:
           tag="v${version}"
           release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}")"
           deb_name="$(printf '%s' "${release_json}" | jq -r '[.assets[].name | select(endswith(".deb"))][0] // empty')"
+          appimage_name="$(printf '%s' "${release_json}" | jq -r '[.assets[].name | select(endswith(".AppImage"))][0] // empty')"
           exe_name="$(printf '%s' "${release_json}" | jq -r '[.assets[].name | select(endswith(".exe"))][0] // empty')"
-          if [[ -z "${deb_name}" || -z "${exe_name}" ]]; then
-            echo "Expected signed .deb and .exe release assets were not found."
+          if [[ -z "${deb_name}" || -z "${appimage_name}" || -z "${exe_name}" ]]; then
+            echo "Expected Linux .deb, signed AppImage updater bundle, and Windows .exe assets were not found."
             exit 1
           fi
-          deb_sig_name="${deb_name}.sig"
+          appimage_sig_name="${appimage_name}.sig"
           exe_sig_name="${exe_name}.sig"
-          gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" --pattern "${deb_sig_name}" --dir updater-assets
+          gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" --pattern "${appimage_sig_name}" --dir updater-assets
           gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" --pattern "${exe_sig_name}" --dir updater-assets
-          deb_url="$(printf '%s' "${release_json}" | jq -r --arg n "${deb_name}" '.assets[] | select(.name == $n) | .browser_download_url')"
+          appimage_url="$(printf '%s' "${release_json}" | jq -r --arg n "${appimage_name}" '.assets[] | select(.name == $n) | .browser_download_url')"
           exe_url="$(printf '%s' "${release_json}" | jq -r --arg n "${exe_name}" '.assets[] | select(.name == $n) | .browser_download_url')"
           notes="$(printf '%s' "${release_json}" | jq -r '.body // ""')"
           pub_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -157,9 +158,9 @@ jobs:
             --arg version "${version}" \
             --arg notes "${notes}" \
             --arg pub_date "${pub_date}" \
-            --arg deb_url "${deb_url}" \
-            --arg deb_sig "$(cat "updater-assets/${deb_sig_name}")" \
+            --arg appimage_url "${appimage_url}" \
+            --arg appimage_sig "$(cat "updater-assets/${appimage_sig_name}")" \
             --arg exe_url "${exe_url}" \
             --arg exe_sig "$(cat "updater-assets/${exe_sig_name}")" \
-            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"linux-x86_64":{url:$deb_url,signature:$deb_sig},"windows-x86_64":{url:$exe_url,signature:$exe_sig}}}' > latest.json
+            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"linux-x86_64":{url:$appimage_url,signature:$appimage_sig},"windows-x86_64":{url:$exe_url,signature:$exe_sig}}}' > latest.json
           gh release upload "${tag}" latest.json --repo "${GITHUB_REPOSITORY}" --clobber
