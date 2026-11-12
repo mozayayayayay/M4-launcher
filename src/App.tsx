@@ -116,7 +116,6 @@ export default function App() {
   const [installVersion, setInstallVersion] = useState("");
 
   const [modQuery, setModQuery] = useState("");
-  const [modpackSource, setModpackSource] = useState<"Modrinth" | "CurseForge">("Modrinth");
   const [modResults, setModResults] = useState<ModrinthMod[]>([]);
   const [modLoading, setModLoading] = useState(false);
   const [modError, setModError] = useState("");
@@ -127,10 +126,32 @@ export default function App() {
   const [modPageSize, setModPageSize] = useState(30);
   const [modsTab, setModsTab] = useState<"discover" | "installed">("discover");
   const [selectedProject, setSelectedProject] = useState<ModrinthMod | null>(null);
+  const [projectDetails, setProjectDetails] = useState<Record<string, any> | null>(null);
   const [projectVersions, setProjectVersions] = useState<ProjectVersion[]>([]);
   const [selectedProjectVersion, setSelectedProjectVersion] = useState("");
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [installedModpack, setInstalledModpack] = useState<Record<string, any> | null>(null);
+
+  useEffect(() => {
+    const applyPlaceholders = (root: ParentNode) => {
+      root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach((field) => {
+        const type = field instanceof HTMLInputElement ? field.type : "textarea";
+        if (!["checkbox", "radio", "color", "range", "file", "button", "submit", "reset", "hidden"].includes(type)) {
+          field.placeholder = "insert here";
+        }
+      });
+    };
+    applyPlaceholders(document);
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) applyPlaceholders(node);
+        });
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   const projectsPageRef = useRef<HTMLDivElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
@@ -603,12 +624,9 @@ export default function App() {
         offset: requestedPage * modPageSize,
         limit: modPageSize
       };
-      const result = projectType === "modpack" && modpackSource === "CurseForge"
-        ? await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_curseforge_modpacks", {
-            query: modQuery.trim(), gameVersion: modVersion || selected.version,
-            offset: requestedPage * modPageSize, limit: modPageSize
-          })
-        : await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_modrinth", searchArgs);
+
+
+      const result = await invoke<{ hits: ModrinthMod[]; totalHits: number }>("search_modrinth", searchArgs);
 
       const sortedHits = [...(result.hits ?? [])].sort(
         (a, b) => b.downloads - a.downloads
@@ -677,20 +695,22 @@ export default function App() {
 
   async function openProjectDownload(mod: ModrinthMod) {
     setSelectedProject(mod);
+    setProjectDetails(null);
     setProjectVersions([]);
     setSelectedProjectVersion("");
     setVersionsLoading(true);
     try {
-      const versions = page === "Modpacks" && modpackSource === "CurseForge"
-        ? (await invoke<Record<string, any>[]>("get_curseforge_modpack_files", { modId: mod.projectId })).map((file) => ({
-            id: String(file.id), name: file.displayName || file.fileName || "Modpack version",
-            versionNumber: file.fileName || "", fileName: file.fileName || ""
-          }))
-        : await invoke<ProjectVersion[]>("get_modrinth_project_versions", {
-            projectId: mod.projectId, gameVersion: modVersion || selected?.version,
-            loader: page === "Modpacks" ? null : selected?.loader
-          });
+      const [versions, details] = await Promise.all([
+        invoke<ProjectVersion[]>("get_modrinth_project_versions", {
+          projectId: mod.projectId, gameVersion: modVersion || selected?.version,
+          loader: page === "Modpacks" ? null : selected?.loader
+        }),
+        invoke<Record<string, any>>("get_modrinth_project_details", {
+          projectId: mod.projectId
+        }).catch(() => null)
+      ]);
       setProjectVersions(versions);
+      setProjectDetails(details);
       setSelectedProjectVersion(versions[0]?.id ?? "");
     } catch (error) {
       setNotice(`Couldn't load downloadable versions: ${String(error)}`);
@@ -709,11 +729,10 @@ export default function App() {
     setBusy(true);
     try {
       if (page === "Modpacks") {
-        const metadata = modpackSource === "CurseForge"
-          ? await invoke<Record<string, any>>("install_curseforge_modpack", { instanceId: selected.id, projectId: selectedProject.projectId, fileId: selectedProjectVersion })
-          : await invoke<Record<string, any>>("install_modrinth_modpack", {
-              instanceId: selected.id, projectId: selectedProject.projectId, versionId: selectedProjectVersion
-            });
+
+        const metadata = await invoke<Record<string, any>>("install_modrinth_modpack", {
+          instanceId: selected.id, projectId: selectedProject.projectId, versionId: selectedProjectVersion
+        });
         setInstalledModpack(metadata);
         await refreshInstances();
         await refreshInstalledMods(selected.id);
@@ -1143,7 +1162,7 @@ export default function App() {
                     <h1>{isModpacksPage ? "Modpacks" : "Mods"}</h1>
                     <p>
                       {isModpacksPage
-                        ? "Discover Minecraft modpacks on Modrinth or CurseForge."
+                        ? "Discover Minecraft modpacks on Modrinth."
                         : "Find mods on Modrinth for your selected instance."}
                     </p>
                   </div>
@@ -1201,15 +1220,7 @@ export default function App() {
                           marginTop: 14
                         }}
                       >
-                        {isModpacksPage && (
-                          <select value={modpackSource} onChange={(event) => {
-                            setModpackSource(event.target.value as "Modrinth" | "CurseForge");
-                            setModPage(0);
-                          }} aria-label="Modpack source">
-                            <option value="Modrinth">Modrinth</option>
-                            <option value="CurseForge">CurseForge</option>
-                          </select>
-                        )}
+
                         <input
                           value={modQuery}
                           onChange={(event) => setModQuery(event.target.value)}
@@ -1351,7 +1362,12 @@ export default function App() {
                             )}
 
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <strong>{mod.title}</strong>
+                              <button
+        type="button"
+        className="project-title-button"
+        onClick={() => openProjectDownload(mod)}
+        aria-label={`Open details for ${mod.title}`}
+      >{mod.title}</button>
                               <small style={{ display: "block" }}>
                                 by {mod.author}
                               </small>
@@ -1598,11 +1614,23 @@ export default function App() {
         <div className="modal-backdrop" onClick={() => !busy && setSelectedProject(null)}>
           <div className="modal project-download-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-heading">
-              <div><span className="eyebrow">{page === "Modpacks" ? modpackSource.toUpperCase() + " MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3></div>
+              <div><span className="eyebrow">{page === "Modpacks" ? "MODRINTH MODPACK" : "MODRINTH PROJECT"}</span><h3>{selectedProject.title}</h3><small>by {selectedProject.author} · {selectedProject.downloads.toLocaleString()} downloads</small></div>
               <button className="icon-button" onClick={() => setSelectedProject(null)} disabled={busy}><X size={18} /></button>
             </div>
-            {versionsLoading ? <p>Loading compatible versions...</p> : (
+            {versionsLoading ? <p>Loading project details and compatible versions...</p> : (
               <>
+                {projectDetails?.description && (
+                  <p className="project-description">{projectDetails.description}</p>
+                )}
+                {Array.isArray(projectDetails?.gallery) && projectDetails.gallery.length > 0 && (
+                  <div className="project-gallery" aria-label="Available project images">
+                    {projectDetails.gallery.slice(0, 8).map((image: any, index: number) => (
+                      <a key={image.url ?? index} href={image.url} target="_blank" rel="noreferrer" title={image.title ?? `Project image ${index + 1}`}>
+                        <img src={image.url} alt={image.title ?? `${selectedProject.title} screenshot ${index + 1}`} loading="lazy" />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 <label>
                   {page === "Modpacks" ? "Modpack version" : "Mod version"}
                   <select value={selectedProjectVersion} onChange={(event) => setSelectedProjectVersion(event.target.value)}>

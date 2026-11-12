@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { X, Share2, Download, ShieldCheck, Copy, LoaderCircle } from "lucide-react";
 
 type Mode = "send" | "receive";
@@ -22,7 +23,6 @@ type SignalMessage = { type: string; payload?: any };
 
 const SIGNALING_BASE = (import.meta.env.VITE_M4_SIGNALING_URL as string | undefined)?.replace(/\/+$/, "");
 const CHUNK_SIZE = 16 * 1024;
-const MAX_BUFFERED = 512 * 1024;
 
 function formatBytes(value: number): string {
   if (value < 1024) return value + " B";
@@ -36,10 +36,6 @@ function waitForOpen(socket: WebSocket): Promise<void> {
     socket.addEventListener("open", () => resolve(), { once: true });
     socket.addEventListener("error", () => reject(new Error("Could not connect to the signaling service.")), { once: true });
   });
-}
-function waitForBuffer(channel: RTCDataChannel): Promise<void> {
-  if (channel.bufferedAmount <= MAX_BUFFERED) return Promise.resolve();
-  return new Promise((resolve) => channel.addEventListener("bufferedamountlow", () => resolve(), { once: true }));
 }
 
 export default function InstanceSharing({ mode, instanceId, onClose, onNotice, onImported }: Props) {
@@ -55,8 +51,9 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   const [transferred, setTransferred] = useState(0);
   const [total, setTotal] = useState(0);
   const socketRef = useRef<WebSocket | null>(null);
-  const peerRef = useRef<RTCPeerConnection | null>(null);
-  const channelRef = useRef<RTCDataChannel | null>(null);
+  const peerIdRef = useRef("m4-share-" + Math.random().toString(36).slice(2));
+  const pendingArchiveRef = useRef<ArchiveInfo | null>(null);
+  const pendingSignalsRef = useRef<Array<{ type: string; payload: unknown }>>([]);
   const archiveRef = useRef<string | null>(null);
   const receiveRef = useRef<string | null>(null);
   const offsetRef = useRef(0);
@@ -66,14 +63,42 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   const sessionEndedRef = useRef(false);
   const signalingCompleteRef = useRef(false);
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const candidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
-  useEffect(() => () => {
-    try { channelRef.current?.close(); } catch { /* ignore */ }
-    try { peerRef.current?.close(); } catch { /* ignore */ }
-    try { socketRef.current?.close(); } catch { /* ignore */ }
-    if (archiveRef.current) void invoke("delete_instance_share_archive", { archiveId: archiveRef.current }).catch(() => {});
-    if (receiveRef.current) void invoke("discard_instance_share_receive", { archiveId: receiveRef.current }).catch(() => {});
+  useEffect(() => {
+    let disposed = false;
+    const removers: Array<() => void> = [];
+    Promise.all([
+      listen<{ peerId: string; candidate: unknown }>("native-share-ice", e => { if (e.payload.peerId === peerIdRef.current) sendSignal("ice", e.payload.candidate); }),
+      listen<{ peerId: string; state: string }>("native-share-channel", e => {
+        if (e.payload.peerId !== peerIdRef.current) return;
+        if (e.payload.state === "open") {
+          if (mode === "send" && pendingArchiveRef.current) {
+            const info = pendingArchiveRef.current;
+            void sendNativeText({ type: "manifest", payload: {
+              size: info.size, sha256: info.sha256, name: info.name, version: info.version,
+              loader: info.loader, loaderVersion: info.loaderVersion, modCount: info.modCount, includeSaves: info.includeSaves
+            }}).then(() => setStatus("Waiting for recipient approval...")).catch(e => fail(String(e)));
+          } else setStatus("Connected directly. Waiting for instance details...");
+        }
+        if (e.payload.state === "closed" && !sessionEndedRef.current) fail("The direct connection closed.");
+      }),
+      listen<{ peerId: string; isString: boolean; data: number[] }>("native-share-message", e => {
+        if (e.payload.peerId === peerIdRef.current) void handleNativeMessage(e.payload.isString, e.payload.data);
+      }),
+      listen<{ peerId: string; state: string }>("native-share-connection", e => {
+        if (e.payload.peerId !== peerIdRef.current) return;
+        if (e.payload.state === "connected") { signalingCompleteRef.current = true; setStatus("Direct encrypted connection established"); }
+        if (e.payload.state === "failed") fail("A direct peer-to-peer connection could not be established. M4 will not relay your files.");
+      })
+    ]).then(unsubs => { if (disposed) unsubs.forEach(unsub => unsub()); else removers.push(...unsubs); })
+      .catch(e => { if (!disposed) fail("Could not initialize native sharing events: " + String(e)); });
+    return () => {
+      disposed = true; removers.forEach(unsub => unsub());
+      void invoke("native_share_close_peer", { peerId: peerIdRef.current }).catch(() => {});
+      try { socketRef.current?.close(); } catch { /* ignore */ }
+      if (archiveRef.current) void invoke("delete_instance_share_archive", { archiveId: archiveRef.current }).catch(() => {});
+      if (receiveRef.current) void invoke("discard_instance_share_receive", { archiveId: receiveRef.current }).catch(() => {});
+    };
   }, []);
 
   function fail(message: string) {
@@ -81,8 +106,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     setError(message);
     setStatus("Transfer stopped");
     setBusy(false);
-    try { channelRef.current?.close(); } catch { /* ignore */ }
-    try { peerRef.current?.close(); } catch { /* ignore */ }
+    void invoke("native_share_close_peer", { peerId: peerIdRef.current }).catch(() => {});
     try { socketRef.current?.close(); } catch { /* ignore */ }
     if (archiveRef.current) {
       void invoke("delete_instance_share_archive", { archiveId: archiveRef.current }).catch(() => {});
@@ -98,48 +122,61 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
   function sendSignal(type: string, payload?: unknown) {
     const socket = socketRef.current;
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type, payload }));
+    else pendingSignalsRef.current.push({ type, payload });
   }
-
-  function makePeer(): RTCPeerConnection {
-    const peer = new RTCPeerConnection({
-      // STUN only. No TURN server is configured, so file data cannot be relayed.
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-    });
-    peer.onicecandidate = (event) => {
-      if (event.candidate) sendSignal("ice", event.candidate.toJSON());
-    };
-    peer.oniceconnectionstatechange = () => {
-      if (peer.iceConnectionState === "failed") {
-        fail("A direct peer-to-peer connection could not be established. Your network may block direct connections; M4 will not relay your files.");
+  function flushSignals() {
+    const socket = socketRef.current;
+    if (socket?.readyState === WebSocket.OPEN) pendingSignalsRef.current.splice(0).forEach(m => socket.send(JSON.stringify(m)));
+  }
+  function sendNativeText(message: unknown) {
+    return invoke("native_share_send_text", { peerId: peerIdRef.current, text: JSON.stringify(message) });
+  }
+  async function handleNativeMessage(isString: boolean, data: number[]) {
+    if (isString) {
+      let message: any;
+      try { message = JSON.parse(new TextDecoder().decode(new Uint8Array(data))); } catch { return; }
+      if (mode === "send") {
+        const info = pendingArchiveRef.current;
+        if (message.type === "accept" && info) void sendArchive(info);
+        if (message.type === "reject") fail("The recipient declined the instance.");
+        if (message.type === "imported" && info) {
+          sessionEndedRef.current = true; setStatus("Instance sent successfully"); setBusy(false);
+          void invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
+          archiveRef.current = null; pendingArchiveRef.current = null; onNotice('Shared "' + info.name + '" successfully.');
+        }
+      } else if (message.type === "manifest") {
+        const received = message.payload as IncomingManifest;
+        if (!received || typeof received.name !== "string" || !Number.isFinite(received.size) || received.size <= 0 ||
+          received.size > 8 * 1024 * 1024 * 1024 || typeof received.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(received.sha256)) {
+          fail("The sender provided an invalid instance manifest."); return;
+        }
+        manifestRef.current = received; setManifest(received); setTotal(received.size); setStatus("Review the instance before accepting it.");
+      } else if (message.type === "complete") {
+        const current = manifestRef.current, archiveId = receiveRef.current;
+        if (!current || !archiveId) return;
+        setStatus("Verifying files and importing instance...");
+        try {
+          await writeQueueRef.current;
+          if (sessionEndedRef.current || receiveRef.current !== archiveId) return;
+          const imported = await invoke<{ id: string; name: string }>("finish_instance_share_receive", { archiveId, expectedSha256: current.sha256 });
+          receiveRef.current = null; sessionEndedRef.current = true; setStatus("Instance imported successfully"); setBusy(false);
+          onImported(imported.id); onNotice('Imported "' + imported.name + '" into your instance list.');
+          await sendNativeText({ type: "imported" }); sendSignal("close");
+        } catch (cause) { fail("Couldn't import the shared instance: " + String(cause)); }
       }
-      if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
-        signalingCompleteRef.current = true;
-        setStatus("Direct encrypted connection established");
-      }
-    };
-    peer.onconnectionstatechange = () => {
-      if (peer.connectionState === "failed") fail("The direct connection failed. No file relay was used.");
-    };
-    peerRef.current = peer;
-    return peer;
-  }
-
-  async function applyIce(payload: RTCIceCandidateInit) {
-    const peer = peerRef.current;
-    if (!peer) return;
-    if (!peer.remoteDescription) { candidatesRef.current.push(payload); return; }
-    try { await peer.addIceCandidate(payload); } catch { /* stale candidate */ }
-  }
-  async function flushIce() {
-    const peer = peerRef.current;
-    if (!peer?.remoteDescription) return;
-    const pending = candidatesRef.current.splice(0);
-    for (const candidate of pending) {
-      try { await peer.addIceCandidate(candidate); } catch { /* stale candidate */ }
+    } else if (mode === "receive") {
+      const current = manifestRef.current, archiveId = receiveRef.current;
+      if (!current || !archiveId || !approvedRef.current) return;
+      const bytes = new Uint8Array(data);
+      writeQueueRef.current = writeQueueRef.current.then(async () => {
+        const offset = offsetRef.current;
+        await invoke("write_instance_share_chunk", { archiveId, offset, archiveSize: current.size, bytes: Array.from(bytes) });
+        offsetRef.current += bytes.byteLength; setTransferred(offsetRef.current); setProgress(Math.min(100, offsetRef.current / current.size * 100));
+      }).catch(cause => fail("Couldn't save an incoming file chunk: " + String(cause)));
     }
   }
 
-  async function sendArchive(info: ArchiveInfo, channel: RTCDataChannel) {
+  async function sendArchive(info: ArchiveInfo) {
     if (transferStartedRef.current) return;
     transferStartedRef.current = true;
     setStatus("Sending instance files directly...");
@@ -147,16 +184,14 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     let offset = 0;
     try {
       while (offset < info.size) {
-        if (channel.readyState !== "open") throw new Error("The direct connection closed during transfer.");
-        await waitForBuffer(channel);
         const length = Math.min(CHUNK_SIZE, info.size - offset);
         const bytes = await invoke<number[]>("read_instance_share_chunk", { archiveId: info.archiveId, offset, length });
-        channel.send(new Uint8Array(bytes).buffer);
+        await invoke("native_share_send_binary", { peerId: peerIdRef.current, bytes });
         offset += length;
         setTransferred(offset);
         setProgress(Math.min(100, (offset / info.size) * 100));
       }
-      channel.send(JSON.stringify({ type: "complete" }));
+      await sendNativeText({ type: "complete" });
       setStatus("Files sent. Waiting for the recipient to verify and import the instance...");
     } catch (cause) { fail("Transfer failed: " + String(cause)); }
   }
@@ -177,60 +212,27 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       if (!response.ok) throw new Error("Signaling service returned " + response.status + ".");
       const room = await response.json() as { code: string };
       setStatus("Connecting to the signaling service...");
-      const peer = makePeer();
-      const channel = peer.createDataChannel("m4-instance-files", { ordered: true });
-      channel.binaryType = "arraybuffer";
-      channel.bufferedAmountLowThreshold = 256 * 1024;
-      channelRef.current = channel;
-      channel.onopen = () => {
-        channel.send(JSON.stringify({ type: "manifest", payload: {
-          size: info.size, sha256: info.sha256, name: info.name, version: info.version,
-          loader: info.loader, loaderVersion: info.loaderVersion, modCount: info.modCount,
-          includeSaves: info.includeSaves
-        }}));
-        setStatus("Waiting for recipient approval...");
-      };
-      channel.onmessage = (event) => {
-        if (typeof event.data !== "string") return;
-        let message: any;
-        try { message = JSON.parse(event.data); } catch { return; }
-        if (message.type === "accept") void sendArchive(info, channel);
-        if (message.type === "reject") fail("The recipient declined the instance.");
-        if (message.type === "imported") {
-          sessionEndedRef.current = true;
-          setStatus("Instance sent successfully");
-          setBusy(false);
-          void invoke("delete_instance_share_archive", { archiveId: info.archiveId }).catch(() => {});
-          archiveRef.current = null;
-          onNotice("Shared \"" + info.name + "\" successfully.");
-        }
-      };
-      channel.onclose = () => {
-        if (!sessionEndedRef.current) fail("The recipient disconnected before confirming the import.");
-      };
+      pendingArchiveRef.current = info;
+      await invoke("native_share_create_peer", { peerId: peerIdRef.current, role: "sender" });
       const socket = new WebSocket(SIGNALING_BASE.replace(/^http/, "ws") + "/api/rooms/" + room.code + "/ws?role=sender");
       socketRef.current = socket;
       socket.onmessage = async (event) => {
         let message: SignalMessage;
         try { message = JSON.parse(String(event.data)); } catch { return; }
-        if (message.type === "ready" && !peer.localDescription) {
-          try {
-            const offer = await peer.createOffer();
-            await peer.setLocalDescription(offer);
-            sendSignal("offer", peer.localDescription);
-          } catch (cause) { fail("Could not negotiate a direct connection: " + String(cause)); }
+        if (message.type === "ready") {
+          try { const offer = await invoke("native_share_create_offer", { peerId: peerIdRef.current }); sendSignal("offer", offer); }
+          catch (cause) { fail("Could not negotiate a direct connection: " + String(cause)); }
         } else if (message.type === "answer" && message.payload) {
-          try { await peer.setRemoteDescription(message.payload as RTCSessionDescriptionInit); await flushIce(); }
+          try { await invoke("native_share_set_remote", { peerId: peerIdRef.current, description: message.payload }); }
           catch (cause) { fail("Invalid connection response: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
-          await applyIce(message.payload as RTCIceCandidateInit);
+          try { await invoke("native_share_add_ice", { peerId: peerIdRef.current, candidate: message.payload }); } catch { /* stale candidate */ }
         } else if (message.type === "close" && !sessionEndedRef.current && !signalingCompleteRef.current) fail("The other launcher disconnected.");
       };
+      socket.onopen = flushSignals;
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
-        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && !sessionEndedRef.current) {
-          fail("The signaling session closed before a direct connection was established.");
-        }
+        if (!signalingCompleteRef.current && !sessionEndedRef.current) fail("The signaling session closed before the direct connection was established.");
       };
       await waitForOpen(socket);
       setCode(room.code);
@@ -249,69 +251,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
     signalingCompleteRef.current = false;
     setBusy(true); setError(""); setStatus("Connecting to sender...");
     try {
-      const peer = makePeer();
-      peer.ondatachannel = (event) => {
-        const channel = event.channel;
-        channel.binaryType = "arraybuffer";
-        channelRef.current = channel;
-        channel.onmessage = async (messageEvent) => {
-          if (typeof messageEvent.data === "string") {
-            let message: any;
-            try { message = JSON.parse(messageEvent.data); } catch { return; }
-            if (message.type === "manifest") {
-              const received = message.payload as IncomingManifest;
-              if (!received || typeof received.name !== "string" || !Number.isFinite(received.size)
-                || received.size <= 0 || received.size > 8 * 1024 * 1024 * 1024
-                || typeof received.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(received.sha256)) {
-                fail("The sender provided an invalid instance manifest."); return;
-              }
-              manifestRef.current = received;
-              setManifest(received);
-              setTotal(received.size);
-              setStatus("Review the instance before accepting it.");
-            } else if (message.type === "complete") {
-              const current = manifestRef.current;
-              const archiveId = receiveRef.current;
-              if (!current || !archiveId) return;
-              setStatus("Verifying files and importing instance...");
-              try {
-                await writeQueueRef.current;
-                if (sessionEndedRef.current || receiveRef.current !== archiveId) return;
-                const imported = await invoke<{ id: string; name: string }>("finish_instance_share_receive", {
-                  archiveId, expectedSha256: current.sha256
-                });
-                receiveRef.current = null;
-                sessionEndedRef.current = true;
-                setStatus("Instance imported successfully");
-                setBusy(false);
-                onImported(imported.id);
-                onNotice("Imported \"" + imported.name + "\" into your instance list.");
-                channelRef.current?.send(JSON.stringify({ type: "imported" }));
-                sendSignal("close");
-              } catch (cause) { fail("Couldn't import the shared instance: " + String(cause)); }
-            }
-          } else if (messageEvent.data instanceof ArrayBuffer) {
-            const current = manifestRef.current;
-            const archiveId = receiveRef.current;
-            if (!current || !archiveId || !approvedRef.current) return;
-            const bytes = new Uint8Array(messageEvent.data);
-            writeQueueRef.current = writeQueueRef.current.then(async () => {
-              const offset = offsetRef.current;
-              await invoke("write_instance_share_chunk", {
-                archiveId, offset, archiveSize: current.size, bytes: Array.from(bytes)
-              });
-              offsetRef.current += bytes.byteLength;
-              setTransferred(offsetRef.current);
-              setProgress(Math.min(100, (offsetRef.current / current.size) * 100));
-            }).catch((cause) => { fail("Couldn't save an incoming file chunk: " + String(cause)); });
-          }
-        };
-        channel.onopen = () => setStatus("Connected directly. Waiting for instance details...");
-        channel.onclose = () => {
-          if (!sessionEndedRef.current && status !== "Instance imported successfully") fail("The direct connection closed.");
-        };
-      };
-
+      await invoke("native_share_create_peer", { peerId: peerIdRef.current, role: "receiver" });
       const socket = new WebSocket(SIGNALING_BASE.replace(/^http/, "ws") + "/api/rooms/" + normalized + "/ws?role=receiver");
       socketRef.current = socket;
       socket.onmessage = async (event) => {
@@ -319,21 +259,18 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         try { message = JSON.parse(String(event.data)); } catch { return; }
         if (message.type === "offer" && message.payload) {
           try {
-            await peer.setRemoteDescription(message.payload as RTCSessionDescriptionInit);
-            await flushIce();
-            const answer = await peer.createAnswer();
-            await peer.setLocalDescription(answer);
-            sendSignal("answer", peer.localDescription);
+            await invoke("native_share_set_remote", { peerId: peerIdRef.current, description: message.payload });
+            const answer = await invoke("native_share_create_answer", { peerId: peerIdRef.current });
+            sendSignal("answer", answer);
           } catch (cause) { fail("Could not answer the sender: " + String(cause)); }
         } else if (message.type === "ice" && message.payload) {
-          await applyIce(message.payload as RTCIceCandidateInit);
+          try { await invoke("native_share_add_ice", { peerId: peerIdRef.current, candidate: message.payload }); } catch { /* stale candidate */ }
         } else if (message.type === "close" && !sessionEndedRef.current && !signalingCompleteRef.current) fail("The sender disconnected.");
       };
+      socket.onopen = flushSignals;
       socket.onerror = () => fail("Lost connection to the signaling service.");
       socket.onclose = () => {
-        if (peer.connectionState !== "connected" && peer.connectionState !== "connecting" && !sessionEndedRef.current) {
-          fail("The signaling session closed before a direct connection was established.");
-        }
+        if (!signalingCompleteRef.current && !sessionEndedRef.current) fail("The signaling session closed before the direct connection was established.");
       };
       await waitForOpen(socket);
     } catch (cause) { fail("Couldn't connect using that code: " + String(cause)); }
@@ -350,13 +287,13 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       writeQueueRef.current = Promise.resolve();
       setApproved(true);
       setStatus("Receiving instance files directly...");
-      channelRef.current?.send(JSON.stringify({ type: "accept" }));
+      await sendNativeText({ type: "accept" });
     } catch (cause) { fail("Couldn't prepare the import: " + String(cause)); }
   }
 
   function declineImport() {
     approvedRef.current = false;
-    try { channelRef.current?.send(JSON.stringify({ type: "reject" })); } catch { /* ignore */ }
+    void sendNativeText({ type: "reject" }).catch(() => {});
     sendSignal("reject");
     fail("You declined this instance.");
   }
