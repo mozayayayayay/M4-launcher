@@ -109,7 +109,13 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v0.1.8
+            M0Z4 Launcher v0.1.9
+
+            - Added dedicated Texture Packs and Shaders sections to the top navigation.
+            - Browse Modrinth resource packs and shaders with Minecraft-version-compatible version selection.
+            - Install resource packs into resourcepacks and shaders into shaderpacks for the selected instance.
+            - Added a TLauncher / TLMods source entry, kept unavailable until an officially supported public integration can be verified; no private endpoints or scraping.
+            - Skin changer idea was removed; Accounts remains unchanged.
 
             - Share complete Minecraft instances directly between M4 users with a one-time code.
             - Encrypted WebRTC peer-to-peer transfer; signaling carries connection metadata only.
