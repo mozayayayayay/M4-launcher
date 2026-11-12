@@ -442,6 +442,36 @@ async fn download_file(
     Ok(())
 }
 
+async fn download_many(
+    client: &reqwest::Client,
+    downloads: Vec<(String, PathBuf, Option<String>)>,
+) -> Result<(), String> {
+    // Keep network concurrency bounded: Minecraft asset manifests can contain
+    // thousands of entries, so never create an unbounded number of requests.
+    for batch in downloads.chunks(8) {
+        let mut tasks = tokio::task::JoinSet::new();
+
+        for (url, destination, expected_sha1) in batch.iter().cloned() {
+            let client = client.clone();
+            tasks.spawn(async move {
+                download_file(
+                    &client,
+                    &url,
+                    &destination,
+                    expected_sha1.as_deref(),
+                )
+                .await
+            });
+        }
+
+        while let Some(result) = tasks.join_next().await {
+            result.map_err(|error| format!("Download worker failed: {error}"))??;
+        }
+    }
+
+    Ok(())
+}
+
 fn library_allowed(library: &Value) -> bool {
     let Some(rules) = library.get("rules").and_then(Value::as_array) else {
         return true;
@@ -1282,7 +1312,9 @@ async fn prepare_libraries_and_natives(
 
     fs::create_dir_all(&natives_dir).map_err(|e| e.to_string())?;
 
-    let mut classpath_entries = Vec::new();
+    let mut classpath_paths: Vec<PathBuf> = Vec::new();
+    let mut downloads: Vec<(String, PathBuf, Option<String>)> = Vec::new();
+    let mut native_archives: Vec<(PathBuf, Vec<String>)> = Vec::new();
 
     for library in libraries {
         if !library_allowed(library) {
@@ -1297,20 +1329,31 @@ async fn prepare_libraries_and_natives(
             let relative = safe_relative_path(relative_path)?;
             let artifact_path = game_dir.join("libraries").join(relative);
 
-            if !artifact_path.exists() {
-                let fallback_url = library["url"].as_str().unwrap_or("https://libraries.minecraft.net/");
-                let url = artifact["url"].as_str().map(str::to_string).or_else(|| {
-                    fallback_path.as_ref().map(|path| format!("{}{}", fallback_url.trim_end_matches('/'), format!("/{path}")))
-                });
-                if let Some(url) = url {
-                    if !url.starts_with("https://") { return Err("A modloader library supplied a non-HTTPS URL".into()); }
-                    download_file(client, &url, &artifact_path, artifact["sha1"].as_str()).await?;
+            let fallback_url = library["url"]
+                .as_str()
+                .unwrap_or("https://libraries.minecraft.net/");
+            let url = artifact["url"].as_str().map(str::to_string).or_else(|| {
+                fallback_path.as_ref().map(|path| {
+                    format!(
+                        "{}{}",
+                        fallback_url.trim_end_matches('/'),
+                        format!("/{path}")
+                    )
+                })
+            });
+
+            if let Some(url) = url {
+                if !url.starts_with("https://") {
+                    return Err("A modloader library supplied a non-HTTPS URL".into());
                 }
+                downloads.push((
+                    url,
+                    artifact_path.clone(),
+                    artifact["sha1"].as_str().map(str::to_string),
+                ));
             }
 
-            if artifact_path.exists() {
-                classpath_entries.push(artifact_path.to_string_lossy().to_string());
-            }
+            classpath_paths.push(artifact_path);
         }
 
         let natives = &library["natives"];
@@ -1332,14 +1375,11 @@ async fn prepare_libraries_and_natives(
             ) {
                 let relative = safe_relative_path(relative_path)?;
                 let archive_path = game_dir.join("libraries").join(relative);
-
-                download_file(
-                    client,
-                    url,
-                    &archive_path,
-                    native_download["sha1"].as_str(),
-                )
-                .await?;
+                downloads.push((
+                    url.to_string(),
+                    archive_path.clone(),
+                    native_download["sha1"].as_str().map(str::to_string),
+                ));
 
                 let excludes: Vec<String> = library["extract"]["exclude"]
                     .as_array()
@@ -1352,10 +1392,22 @@ async fn prepare_libraries_and_natives(
                     })
                     .unwrap_or_default();
 
-                extract_natives(&archive_path, &natives_dir, &excludes)?;
+                native_archives.push((archive_path, excludes));
             }
         }
     }
+
+    download_many(client, downloads).await?;
+
+    for (archive_path, excludes) in native_archives {
+        extract_natives(&archive_path, &natives_dir, &excludes)?;
+    }
+
+    let classpath_entries: Vec<String> = classpath_paths
+        .into_iter()
+        .filter(|path| path.exists())
+        .map(|path| path.to_string_lossy().to_string())
+        .collect();
 
     let classpath_separator = if cfg!(windows) { ";" } else { ":" };
     Ok((classpath_entries.join(classpath_separator), natives_dir))
