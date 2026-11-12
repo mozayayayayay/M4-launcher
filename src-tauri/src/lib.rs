@@ -2141,6 +2141,69 @@ async fn install_curseforge_modpack(app: AppHandle, instance_id: String, file_id
     Ok(serde_json::json!({"name": manifest["name"], "minecraftVersion": manifest["minecraft"]["version"], "loader": required_loader, "installedMods": installed, "overrideFiles": overrides}))
 }
 
+
+#[tauri::command]
+async fn install_curseforge_modpack(app: AppHandle, instance_id: String, file_id: String) -> Result<Value, String> {
+    let key = settings_accounts::read_curseforge_api_key(&app)?;
+    let data = load_data(&app)?;
+    let instance = data.instances.iter().find(|i| i.id == instance_id).cloned().ok_or("Instance not found")?;
+    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
+    let meta: Value = client.get(format!("https://api.curseforge.com/v1/mods/0/files/{file_id}")).header("x-api-key", &key)
+        .send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
+    let url = meta["data"]["downloadUrl"].as_str().ok_or("CurseForge did not provide a direct modpack download URL.")?;
+    if !url.starts_with("https://") { return Err("Insecure modpack URL rejected.".into()); }
+    emit_progress(&app, &instance_id, 0, 1, "Downloading CurseForge modpack");
+    let bytes = client.get(url).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.bytes().await.map_err(|e| e.to_string())?;
+    if bytes.len() > 512 * 1024 * 1024 { return Err("Modpack archive exceeds 512 MB.".into()); }
+    let mut archive = zip::ZipArchive::new(Cursor::new(bytes.to_vec())).map_err(|e| format!("Invalid CurseForge archive: {e}"))?;
+    let manifest: Value = {
+        let mut e = archive.by_name("manifest.json").map_err(|_| "Archive has no manifest.json.")?;
+        let mut raw = Vec::new(); e.take(4 * 1024 * 1024).read_to_end(&mut raw).map_err(|e| e.to_string())?;
+        serde_json::from_slice(&raw).map_err(|e| e.to_string())?
+    };
+    let files = manifest["files"].as_array().ok_or("Invalid CurseForge manifest.")?;
+    let loader_id = manifest["minecraft"]["modLoaders"].as_array().and_then(|a| a.iter().find(|v| v["primary"].as_bool() == Some(true)).or_else(|| a.first())).and_then(|v| v["id"].as_str()).unwrap_or("");
+    if !loader_id.is_empty() {
+        let loader = loader_id.split('-').next().unwrap_or("");
+        if !instance.loader.eq_ignore_ascii_case(loader) { return Err(format!("This pack requires {loader}. Create an instance with that loader first.")); }
+    }
+    let game_dir = PathBuf::from(&instance.game_dir);
+    let mut installed = 0u32;
+    for item in files {
+        if item["required"].as_bool() == Some(false) { continue; }
+        let project = item["projectID"].as_u64().ok_or("Invalid project ID")?;
+        let fid = item["fileID"].as_u64().ok_or("Invalid file ID")?;
+        let v: Value = client.get(format!("https://api.curseforge.com/v1/mods/{project}/files/{fid}")).header("x-api-key", &key)
+            .send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())?;
+        let download = v["data"]["downloadUrl"].as_str().ok_or("A required mod file is unavailable for direct download.")?;
+        if !download.starts_with("https://") { return Err("Insecure mod download rejected.".into()); }
+        let filename = v["data"]["fileName"].as_str().unwrap_or("mod.jar");
+        if filename.contains('/') || filename.contains('\\') || filename.contains("..") { return Err("Unsafe mod filename rejected.".into()); }
+        let content = client.get(download).send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?.bytes().await.map_err(|e| e.to_string())?;
+        if content.len() > 256 * 1024 * 1024 { return Err("Mod file exceeds 256 MB.".into()); }
+        let mods = game_dir.join("mods"); tokio::fs::create_dir_all(&mods).await.map_err(|e| e.to_string())?;
+        tokio::fs::write(mods.join(filename), &content).await.map_err(|e| e.to_string())?;
+        installed += 1; emit_progress(&app, &instance_id, installed, files.len() as u32, "Downloading CurseForge mods");
+    }
+    let mut overrides = 0u32;
+    for n in 0..archive.len() {
+        let mut e = archive.by_index(n).map_err(|e| e.to_string())?;
+        let name = e.name().to_string();
+        let Some(rel) = name.strip_prefix("overrides/") else { continue; };
+        if rel.is_empty() || rel.contains('\\') || rel.split('/').any(|p| p == ".." || p.is_empty()) { continue; }
+        let dest = game_dir.join(rel);
+        if e.is_dir() { tokio::fs::create_dir_all(dest).await.map_err(|e| e.to_string())?; }
+        else {
+            if e.size() > 128 * 1024 * 1024 { return Err("Override file exceeds 128 MB.".into()); }
+            if let Some(parent) = dest.parent() { tokio::fs::create_dir_all(parent).await.map_err(|e| e.to_string())?; }
+            let mut raw = Vec::new(); e.take(128 * 1024 * 1024).read_to_end(&mut raw).map_err(|e| e.to_string())?;
+            tokio::fs::write(dest, raw).await.map_err(|e| e.to_string())?; overrides += 1;
+        }
+    }
+    emit_progress(&app, &instance_id, 1, 1, "CurseForge modpack installed");
+    Ok(serde_json::json!({"name": manifest["name"], "minecraftVersion": manifest["minecraft"]["version"], "loader": loader_id, "installedMods": installed, "overrideFiles": overrides}))
+}
+
 // Modrinth version selection
 // --------------------------------------------------
 
