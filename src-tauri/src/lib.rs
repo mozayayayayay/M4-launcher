@@ -2026,6 +2026,21 @@ async fn install_modrinth_mod(
     Ok(installed.join(", "))
 }
 
+// Modrinth project details (description and gallery for the project info menu)
+#[tauri::command]
+async fn get_modrinth_project_details(project_id: String) -> Result<Value, String> {
+    if project_id.trim().is_empty() || project_id.len() > 128 {
+        return Err("Invalid Modrinth project identifier.".into());
+    }
+    let client = reqwest::Client::builder()
+        .user_agent("M0Z4-Launcher/0.1.7")
+        .build().map_err(|e| e.to_string())?;
+    client.get(format!("{MODRINTH_API}/project/{project_id}"))
+        .send().await.map_err(|e| e.to_string())?
+        .error_for_status().map_err(|e| e.to_string())?
+        .json().await.map_err(|e| e.to_string())
+}
+
 // Modrinth version selection
 // --------------------------------------------------
 
@@ -2748,6 +2763,7 @@ pub fn run() {
             launch_minecraft,
             search_modrinth,
             install_modrinth_mod,
+            get_modrinth_project_details,
             get_modrinth_project_versions,
             install_modrinth_mod_version,
             install_modrinth_modpack,
