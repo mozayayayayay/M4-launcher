@@ -2026,6 +2026,51 @@ async fn install_modrinth_mod(
 }
 
 // --------------------------------------------------
+
+#[tauri::command]
+async fn search_curseforge_modpacks(
+    app: AppHandle, query: String, game_version: Option<String>,
+    offset: Option<u32>, limit: Option<u32>,
+) -> Result<ModrinthSearchResult, String> {
+    let key = settings_accounts::read_curseforge_api_key(&app)?;
+    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
+    let offset_s = offset.unwrap_or(0).to_string();
+    let limit_s = limit.unwrap_or(20).clamp(1, 50).to_string();
+    let mut request = client.get("https://api.curseforge.com/v1/mods/search")
+        .header("x-api-key", key)
+        .query(&[("gameId", "432"), ("classId", "4471"), ("searchFilter", query.as_str()),
+            ("index", offset_s.as_str()), ("pageSize", limit_s.as_str())]);
+    if let Some(version) = game_version.filter(|v| !v.is_empty()) {
+        request = request.query(&[("gameVersion", version)]);
+    }
+    let value: Value = request.send().await.map_err(|e| e.to_string())?
+        .error_for_status().map_err(|e| format!("CurseForge request failed: {e}"))?
+        .json().await.map_err(|e| e.to_string())?;
+    let hits = value["data"].as_array().cloned().unwrap_or_default().into_iter().map(|item| {
+        ModrinthHit {
+            project_id: item["id"].as_u64().unwrap_or(0).to_string(),
+            slug: item["slug"].as_str().unwrap_or("").to_string(),
+            title: item["name"].as_str().unwrap_or("Untitled modpack").to_string(),
+            author: item["authors"].as_array().and_then(|a| a.first()).and_then(|a| a["name"].as_str()).unwrap_or("CurseForge creator").to_string(),
+            downloads: item["downloadCount"].as_u64().unwrap_or(0),
+            icon_url: item["logo"]["url"].as_str().map(str::to_string),
+            latest_version: None,
+        }
+    }).collect();
+    Ok(ModrinthSearchResult { hits, total_hits: value["pagination"]["totalCount"].as_u64().unwrap_or(0) })
+}
+
+#[tauri::command]
+async fn get_curseforge_modpack_files(app: AppHandle, mod_id: String) -> Result<Vec<Value>, String> {
+    let key = settings_accounts::read_curseforge_api_key(&app)?;
+    let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/0.1.6").build().map_err(|e| e.to_string())?;
+    let value: Value = client.get(format!("https://api.curseforge.com/v1/mods/{mod_id}/files"))
+        .header("x-api-key", key).query(&[("pageSize", "50"), ("index", "0")])
+        .send().await.map_err(|e| e.to_string())?.error_for_status().map_err(|e| e.to_string())?
+        .json().await.map_err(|e| e.to_string())?;
+    Ok(value["data"].as_array().cloned().unwrap_or_default())
+}
+
 // Modrinth version selection
 // --------------------------------------------------
 
@@ -2745,7 +2790,7 @@ pub fn run() {
             install_minecraft_version,
             install_modloader,
             launch_minecraft,
-            search_modrinth,
+            search_modrinth,\n            search_curseforge_modpacks,\n            get_curseforge_modpack_files,
             install_modrinth_mod,
             get_modrinth_project_versions,
             install_modrinth_mod_version,
