@@ -254,9 +254,19 @@ p, span, strong, small, label {
   align-items: center;
   gap: 8px;
   height: 100%;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.top-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item {
+  flex: 0 0 auto;
   height: 40px;
   padding: 0 14px;
   display: flex;
