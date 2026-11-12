@@ -21,3 +21,13 @@ The client must configure STUN only and must not configure TURN servers. STUN he
 - Test two real devices on different networks, including a restrictive NAT.
 - Verify no archive/file payload is sent to this Worker.
 - Add abuse/rate controls if the service becomes public.
+
+## Automated deployment from GitHub
+
+To let the repository deploy the Worker after changes are merged to `main`, configure these repository settings:
+
+- Actions secret `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with permission to edit Workers and Durable Objects for the target account.
+- Actions variable `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID.
+- Actions variable `M4_SIGNALING_URL`: the deployed Worker URL, without a trailing slash.
+
+The deploy workflow intentionally skips when the Cloudflare credentials are absent. The Windows/Linux release workflow refuses to publish if `M4_SIGNALING_URL/health` is not reachable, so a build cannot advertise a non-deployed signaling endpoint.
