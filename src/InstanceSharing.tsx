@@ -181,8 +181,7 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
       const response = await fetch(SIGNALING_BASE + "/api/rooms", { method: "POST" });
       if (!response.ok) throw new Error("Signaling service returned " + response.status + ".");
       const room = await response.json() as { code: string };
-      setCode(room.code);
-      setStatus("Waiting for the other M4 user to enter your code...");
+      setStatus("Connecting to the signaling service...");
       const peer = makePeer();
       const channel = peer.createDataChannel("m4-instance-files", { ordered: true });
       channel.binaryType = "arraybuffer";
@@ -228,6 +227,8 @@ export default function InstanceSharing({ mode, instanceId, onClose, onNotice, o
         }
       };
       await waitForOpen(socket);
+      setCode(room.code);
+      setStatus("Waiting for the other M4 user to enter your code...");
     } catch (cause) { fail("Couldn't start sharing: " + String(cause)); }
   }
 
