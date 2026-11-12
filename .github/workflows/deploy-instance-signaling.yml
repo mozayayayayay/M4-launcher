@@ -15,15 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        if: steps.config.outputs.ready == 'true'
         with:
           node-version: 22
       - name: Install signaling service dependencies
+        if: steps.config.outputs.ready == 'true'
         working-directory: services/instance-signaling
         run: npm install
       - name: Type-check signaling service
+        if: steps.config.outputs.ready == 'true'
         working-directory: services/instance-signaling
         run: npm run typecheck
       - name: Deploy signaling service
+        if: steps.config.outputs.ready == 'true'
         working-directory: services/instance-signaling
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
