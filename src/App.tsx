@@ -707,7 +707,7 @@ export default function App() {
         }),
         invoke<Record<string, any>>("get_modrinth_project_details", {
           projectId: mod.projectId
-        })
+        }).catch(() => null)
       ]);
       setProjectVersions(versions);
       setProjectDetails(details);
