@@ -115,7 +115,8 @@ export default function App() {
   const [versionFilter, setVersionFilter] = useState("release");
   const [installVersion, setInstallVersion] = useState("");
 
-  const [modQuery, setModQuery] = useState("");\n  const [modpackSource, setModpackSource] = useState<"Modrinth" | "CurseForge">("Modrinth");
+  const [modQuery, setModQuery] = useState("");
+  const [modpackSource, setModpackSource] = useState<"Modrinth" | "CurseForge">("Modrinth");
   const [modResults, setModResults] = useState<ModrinthMod[]>([]);
   const [modLoading, setModLoading] = useState(false);
   const [modError, setModError] = useState("");
