@@ -1,0 +1,48 @@
+name: Deploy M4 signaling service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/instance-signaling/**"
+      - ".github/workflows/deploy-instance-signaling.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deployment credentials
+        id: config
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          if [[ -n "${CLOUDFLARE_API_TOKEN}" && -n "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to enable signaling deployment."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          node-version: 22
+      - name: Install signaling service dependencies
+        if: steps.config.outputs.ready == 'true'
+        working-directory: services/instance-signaling
+        run: npm install
+      - name: Type-check signaling service
+        if: steps.config.outputs.ready == 'true'
+        working-directory: services/instance-signaling
+        run: npm run typecheck
+      - name: Deploy signaling service
+        if: steps.config.outputs.ready == 'true'
+        working-directory: services/instance-signaling
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy
