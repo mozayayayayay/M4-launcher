@@ -370,7 +370,7 @@ export default function App() {
       });
 
       const processedImage = await new Promise<string>((resolve, reject) => {
-        const image = new Image();
+        const image = new window.Image();
 
         image.onload = () => {
           const maxDimension = 256;
