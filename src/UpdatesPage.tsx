@@ -134,11 +134,17 @@ export default function UpdatesPage({ onProgress, onNotice }: Props) {
           </div>
           <h2>{pendingUpdate || available ? "A new version is available." : "You are using the latest version."}</h2>
           <p className="update-message">{pendingUpdate ? "Click Update now to download and install the signed update. Your instances, mods, modpacks and settings stay in your launcher data folder." : nativeApp && available ? "This release is available, but its signed in-app update package is not ready. You can still use the installer links below." : "Updates are checked against the official M0Z4 GitHub releases."}</p>
+          {release.body?.trim() && (
+            <div className="update-release-notes">
+              <span className="eyebrow">WHAT'S INCLUDED</span>
+              <p className="update-message" style={{ whiteSpace: "pre-wrap" }}>{release.body.trim()}</p>
+            </div>
+          )}
           <div className="update-actions">
             {pendingUpdate && <button className="update-download" onClick={() => void installUpdate()} disabled={installing}>Update now</button>}
             {linux && <a className="update-download" href={linux.browser_download_url} target="_blank" rel="noreferrer">Download Linux installer (.deb)</a>}
             {windows && <a className="update-download" href={windows.browser_download_url} target="_blank" rel="noreferrer">Download Windows installer (.exe)</a>}
-            <a className="update-download secondary" href={release.html_url} target="_blank" rel="noreferrer">Release notes</a>
+
           </div>
           {!linux && !windows && <p className="update-message">No installer for this platform was attached to the latest release.</p>}
         </> : null}
