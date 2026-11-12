@@ -709,7 +709,7 @@ export default function App() {
     try {
       if (page === "Modpacks") {
         const metadata = modpackSource === "CurseForge"
-          ? await invoke<Record<string, any>>("install_curseforge_modpack", { instanceId: selected.id, fileId: selectedProjectVersion })
+          ? await invoke<Record<string, any>>("install_curseforge_modpack", { instanceId: selected.id, projectId: selectedProject.projectId, fileId: selectedProjectVersion })
           : await invoke<Record<string, any>>("install_modrinth_modpack", {
               instanceId: selected.id, projectId: selectedProject.projectId, versionId: selectedProjectVersion
             });
