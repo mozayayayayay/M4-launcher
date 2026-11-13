@@ -2667,3 +2667,78 @@ p, span, strong, small, label {
 .app-shell button:hover:not(:disabled) {
   transform: none !important;
 }
+
+
+/* 1.2.9: text-first controls across every theme.
+   Controls stay visually quiet until hovered, focused, or selected. */
+.app-shell button {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-shell button:hover:not(:disabled),
+.app-shell button:focus-visible {
+  background: color-mix(in srgb, var(--accent-color) 12%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 34%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.app-shell :is(
+  .nav-item.active,
+  .instance-item.selected,
+  .more-button.active,
+  .rail-settings-button.active,
+  .mods-subnav-button.active,
+  [aria-pressed="true"],
+  [aria-selected="true"]
+) {
+  background: color-mix(in srgb, var(--accent-color) 15%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 38%, transparent) !important;
+  box-shadow: none !important;
+}
+
+.app-shell button:disabled {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: .48;
+}
+
+/* Keep the selected Midnight controls text-first too; the earlier
+   monochrome skin intentionally used higher-specificity button rules. */
+:root[data-theme="dark"] .app-shell button {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell button:hover:not(:disabled),
+:root[data-theme="dark"] .app-shell button:focus-visible {
+  background: #ffffff12 !important;
+  border-color: #ffffff30 !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell :is(
+  .nav-item.active,
+  .instance-item.selected,
+  .more-button.active,
+  .rail-settings-button.active,
+  .mods-subnav-button.active,
+  [aria-pressed="true"],
+  [aria-selected="true"]
+) {
+  background: #ffffff16 !important;
+  border-color: #ffffff38 !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell button:disabled {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: .42;
+}
