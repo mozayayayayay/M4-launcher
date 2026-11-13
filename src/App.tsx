@@ -858,7 +858,7 @@ export default function App() {
     : installedMods;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
       <div className="galaxy-background" aria-hidden="true">
         <div className="galaxy-nebula nebula-one" />
         <div className="galaxy-nebula nebula-two" />
