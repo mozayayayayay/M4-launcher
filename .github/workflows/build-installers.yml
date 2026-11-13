@@ -112,10 +112,9 @@ jobs:
           releaseBody: |
             M0Z4 Launcher v1.2.12
 
-            - Fixed relative modloader artifact and native-library URLs by resolving them against their repository before HTTPS validation.
-            - Fixed native-only legacy libraries such as jinput-platform so M4 downloads their platform classifiers without inventing a missing base JAR URL.
-            - Enforced text-only Midnight buttons at rest; subtle button surfaces appear only on hover, keyboard focus, or selection. Added a Rename instance action to the three-dot menu.
-            - Moved the top navigation farther left when the instance sidebar is collapsed, reducing the reserved brand gutter.
+            - Reduced UI lag across Home, Mods, Modpacks, Texture Packs, and Shaders by removing costly full-screen blur/backdrop compositing and continuous starfield animation.
+            - Removed the page re-entry animation that forced large sections to animate on every navigation.
+            - Preserved the existing layouts and features while reducing rendering work for integrated GPUs and lower-memory systems.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
