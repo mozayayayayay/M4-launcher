@@ -1310,12 +1310,14 @@ export default function App() {
                         />
 
                         <button
-                          className="primary-button"
+                          type="button"
+                          className="primary-button restored-action-button"
                           onClick={() => {
                             setModPage(0);
                             void searchProjects(0);
                           }}
                           disabled={modLoading}
+                          aria-label={modLoading ? "Searching Modrinth" : "Search Modrinth"}
                         >
                           <Search size={16} />
                           {modLoading ? "Searching..." : "Search"}
@@ -1576,7 +1578,8 @@ export default function App() {
                     </p>
                   </div>
                   <button
-                    className="secondary-button"
+                    type="button"
+                    className="secondary-button restored-action-button"
                     onClick={() => { consoleEntriesRef.current = []; setConsoleEntries([]); }}
                   >
                     <Trash size={15} /> Clear console
