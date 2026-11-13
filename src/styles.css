@@ -2823,3 +2823,43 @@ p, span, strong, small, label {
 .app-shell .info-card {
   contain: layout style;
 }
+
+
+/* 1.2.14: restore the key action controls with text-first styling across themes. */
+.app-shell .restored-action-button {
+  min-height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent !important;
+  border-radius: 9px;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: inherit;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.app-shell .restored-action-button:hover:not(:disabled),
+.app-shell .restored-action-button:focus-visible {
+  background: #ffffff12 !important;
+  background-color: #ffffff12 !important;
+  border-color: #ffffff28 !important;
+  box-shadow: none !important;
+}
+.app-shell .restored-action-button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.app-shell .restored-action-button svg {
+  flex: 0 0 auto;
+}
