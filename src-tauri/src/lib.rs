@@ -2529,6 +2529,56 @@ async fn install_modrinth_modpack(
 
 
 
+
+#[tauri::command]
+fn get_installed_modpack(app: AppHandle, instance_id: String) -> Result<Option<Value>, String> {
+    let data = load_data(&app)?;
+    let instance = data.instances.iter().find(|item| item.id == instance_id)
+        .ok_or("Instance not found.")?;
+    let path = PathBuf::from(&instance.game_dir).join(".m0z4-modpack.json");
+    if !path.is_file() { return Ok(None); }
+    let bytes = fs::read(path).map_err(|e| e.to_string())?;
+    let metadata = serde_json::from_slice(&bytes).map_err(|e| format!("Invalid installed modpack metadata: {e}"))?;
+    Ok(Some(metadata))
+}
+
+#[tauri::command]
+fn get_installed_mods(app: AppHandle, instance_id: String) -> Result<Vec<String>, String> {
+    let data = load_data(&app)?;
+    let instance = data.instances.iter().find(|item| item.id == instance_id)
+        .ok_or("Instance not found.")?;
+    let mods_dir = PathBuf::from(&instance.game_dir).join("mods");
+    if !mods_dir.exists() { return Ok(Vec::new()); }
+    let mut mods = Vec::new();
+    for entry in fs::read_dir(mods_dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        if entry.file_type().map_err(|e| e.to_string())?.is_file()
+            && entry.path().extension().is_some_and(|ext| ext.eq_ignore_ascii_case("jar")) {
+            if let Some(name) = entry.file_name().to_str() { mods.push(name.to_string()); }
+        }
+    }
+    mods.sort();
+    Ok(mods)
+}
+
+#[tauri::command]
+fn remove_mod(app: AppHandle, instance_id: String, filename: String) -> Result<(), String> {
+    let path = Path::new(&filename);
+    if filename.trim().is_empty() || path.components().count() != 1
+        || path.file_name().and_then(|v| v.to_str()) != Some(filename.as_str())
+        || !path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("jar")) {
+        return Err("Invalid mod filename.".into());
+    }
+    let mut data = load_data(&app)?;
+    let index = data.instances.iter().position(|item| item.id == instance_id)
+        .ok_or("Instance not found.")?;
+    let mod_path = PathBuf::from(&data.instances[index].game_dir).join("mods").join(&filename);
+    if !mod_path.is_file() { return Err("The selected mod file was not found.".into()); }
+    fs::remove_file(mod_path).map_err(|e| format!("Could not remove mod: {e}"))?;
+    data.instances[index].mods = count_mods(&data.instances[index]);
+    save_data(&app, &data)
+}
+
 fn encode_base64(bytes: &[u8]) -> String {
     const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut output = String::with_capacity((bytes.len() + 2) / 3 * 4);
