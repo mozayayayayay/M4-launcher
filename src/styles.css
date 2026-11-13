@@ -2647,3 +2647,23 @@ p, span, strong, small, label {
 @media (prefers-reduced-motion: reduce) {
   .app-shell button { transition: none !important; }
 }
+
+
+/* 1.2.5 polish: keep Midnight controls rounded and prevent hover hitbox jitter. */
+:root[data-theme="dark"] .app-shell button {
+  border-radius: 9px;
+  transition-property: background-color, color, border-color, box-shadow, opacity, filter !important;
+  transition-duration: 140ms !important;
+  transition-timing-function: ease-out !important;
+}
+:root[data-theme="dark"] .app-shell :is(.icon-button,.subtle) {
+  border-radius: 8px;
+}
+:root[data-theme="dark"] .app-shell .sidebar-toggle {
+  border-radius: 10px;
+}
+/* Hover transforms can move a control out from under the pointer and retrigger
+   hover repeatedly; use stable hitboxes and animate only visual styling. */
+.app-shell button:hover:not(:disabled) {
+  transform: none !important;
+}
