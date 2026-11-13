@@ -1576,6 +1576,24 @@ async fn install_modloader(
             &instance_id,
         ).await?;
         emit_progress(&app, &instance_id, 2, 4, format!("Running {loader_key} installer with Java {}", required_java_major(&base_json, &instance.version)));
+        // Forge's client installer requires a launcher_profiles.json in its target
+        // directory, even when Minecraft has been installed by a third-party launcher.
+        // M4 keeps each instance isolated, so bootstrap the minimal launcher profile
+        // that Forge can safely inject its generated profile into.
+        fs::create_dir_all(&game_dir).map_err(|e| format!("Could not prepare the Forge game directory: {e}"))?;
+        let launcher_profiles_path = game_dir.join("launcher_profiles.json");
+        if !launcher_profiles_path.exists() {
+            let bootstrap_profiles = serde_json::json!({
+                "profiles": {},
+                "selectedProfile": "(Default)",
+                "settings": {}
+            });
+            fs::write(
+                &launcher_profiles_path,
+                serde_json::to_vec_pretty(&bootstrap_profiles).map_err(|e| e.to_string())?,
+            ).map_err(|e| format!("Could not create the Forge launcher profile: {e}"))?;
+        }
+
         // Run from the instance directory so Forge writes its installer log there.
         let output = Command::new(&installer_java)
             .arg("-Djava.awt.headless=true")
