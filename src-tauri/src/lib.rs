@@ -1425,8 +1425,11 @@ async fn prepare_libraries_and_natives(
             ) {
                 let relative = safe_relative_path(relative_path)?;
                 let archive_path = game_dir.join("libraries").join(relative);
+                // Apply the same HTTPS validation and trusted-host upgrade used
+                // for ordinary artifacts to native classifier downloads too.
+                let url = secure_library_url(url)?;
                 downloads.push((
-                    url.to_string(),
+                    url,
                     archive_path.clone(),
                     native_download["sha1"].as_str().map(str::to_string),
                 ));
