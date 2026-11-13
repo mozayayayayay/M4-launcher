@@ -2265,7 +2265,7 @@ async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String>
   .and_then(|v|v.as_str().or_else(||v.get("version").and_then(Value::as_str))).map(|v|((*name).to_string(),v.to_string()))))
   .unwrap_or_else(||("vanilla".into(),"—".into()));
  let raw_name=manifest.get("name").and_then(Value::as_str).unwrap_or("Imported Modpack").trim();
- let name=if raw_name.is_empty(){"Imported Modpack"}else{raw_name}.chars().take(80).collect::<String>();
+ let name=(if raw_name.is_empty(){"Imported Modpack"}else{raw_name}).chars().take(80).collect::<String>();
  let id=Uuid::new_v4().to_string();
  let game_dir=app.path().app_data_dir().map_err(|e|e.to_string())?.join("instances").join(&id);
  fs::create_dir_all(&game_dir).map_err(|e|e.to_string())?;
