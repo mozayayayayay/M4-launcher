@@ -1393,8 +1393,23 @@ async fn prepare_libraries_and_natives(
         }
 
         let artifact = &library["downloads"]["artifact"];
-        let fallback_path = library["name"].as_str().and_then(maven_artifact_path);
-        let relative_path = artifact["path"].as_str().or(fallback_path.as_deref());
+        // Some legacy Minecraft libraries (notably jinput-platform) publish
+        // only OS-specific native classifiers and intentionally have no
+        // unclassified artifact. Do not invent a base JAR URL for those entries.
+        let has_native_classifiers = library["downloads"]["classifiers"]
+            .as_object()
+            .is_some_and(|classifiers| !classifiers.is_empty());
+        let has_artifact_entry = artifact.is_object() || !has_native_classifiers;
+        let fallback_path = if has_artifact_entry {
+            library["name"].as_str().and_then(maven_artifact_path)
+        } else {
+            None
+        };
+        let relative_path = if has_artifact_entry {
+            artifact["path"].as_str().or(fallback_path.as_deref())
+        } else {
+            None
+        };
 
         if let Some(relative_path) = relative_path {
             let relative = safe_relative_path(relative_path)?;
