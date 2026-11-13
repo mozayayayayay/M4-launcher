@@ -1,3 +1,4 @@
+# M4 Launcher release pipeline
 name: Build installers and publish updater manifest
 
 on:
