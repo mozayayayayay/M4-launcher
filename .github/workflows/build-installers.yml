@@ -110,15 +110,10 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.4
+            M0Z4 Launcher v1.2.5
 
-            - Fixed Forge client installation in isolated instances by creating the launcher profile file Forge requires before running its installer.
-            - Removed the Liquid Glass setting and its related styling.
-            - Reduced hover animation durations to make controls feel more responsive on lower-powered computers.
-            - Made the main sections use the available workspace width so they shift left naturally when the instance sidebar collapses.
-            - Redesigned the sidebar collapse control.
-            - Refined Midnight theme buttons with clearer contrast, borders, hover states and primary actions.
-            - Builds for Linux DEB and Windows setup.
+            - Fixed Forge and NeoForge client installation in isolated instances by safely creating and validating the launcher profile file their installers require before running.
+                        - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
