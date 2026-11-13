@@ -2301,8 +2301,17 @@ async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String>
   }
   let icon={
    let mut z=zip::ZipArchive::new(Cursor::new(archive_bytes.clone())).map_err(|e|e.to_string())?;
-   match z.by_name("icon.png"){Ok(mut file)=>{if file.size()>10*1024*1024{return Err("The modpack icon is larger than 10 MB.".into());}let mut bytes=Vec::new();file.read_to_end(&mut bytes).map_err(|e|e.to_string())?;if bytes.is_empty(){String::new()}else{format!("data:image/png;base64,{}",encode_base64(&bytes))}},Err(_)=>String::new()}
-  };
+    let icon_result = match z.by_name("icon.png") {
+        Ok(mut file) => {
+            if file.size() > 10 * 1024 * 1024 { return Err("The modpack icon is larger than 10 MB.".into()); }
+            let mut bytes = Vec::new();
+            file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+            if bytes.is_empty() { String::new() } else { format!("data:image/png;base64,{}", encode_base64(&bytes)) }
+        }
+        Err(_) => String::new(),
+    };
+    icon_result
+   };
   let mut current=load_data(&app)?;let idx=current.instances.iter().position(|v|v.id==id).ok_or("Imported instance disappeared from the library.")?;
   current.instances[idx].icon=icon;current.instances[idx].status="Installed".into();current.instances[idx].mods=mods.len();save_data(&app,&current)?;
   if loader!="vanilla"{install_modloader(app.clone(),id.clone(),loader.clone(),Some(loader_version.clone())).await?;}
@@ -2408,7 +2417,7 @@ async fn install_modrinth_modpack(
         return Err(error);
     }
 
-    let install_result: Result<Instance, String> = async {
+    let install_result: Result<Value, String> = async {
         install_minecraft_version(app.clone(), id.clone(), mc_version.clone()).await?;
         let client = reqwest::Client::builder().user_agent("M0Z4-Launcher/1.2.3")
             .build().map_err(|e| e.to_string())?;
@@ -2700,10 +2709,11 @@ fn create_instance_share_archive(
     file.sync_all().map_err(|e| e.to_string())?;
     let size = file.metadata().map_err(|e| e.to_string())?.len();
     let sha256 = sha256_file(&archive_path)?;
+    let mod_count = count_mods(&instance);
     Ok(ShareArchiveInfo {
         archive_id, size, sha256, name: instance.name, version: instance.version,
         loader: instance.loader, loader_version: instance.loader_version,
-        mod_count: count_mods(&instance), include_saves
+        mod_count, include_saves
     })
 }
 
