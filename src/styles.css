@@ -2557,63 +2557,6 @@ p, span, strong, small, label {
 @keyframes m4-stars-transform-near { from { transform:translate3d(0,0,0); } to { transform:translate3d(-320px,-170px,0); } }
 @keyframes m4-stars-transform-far { from { transform:translate3d(0,0,0); } to { transform:translate3d(-380px,-230px,0); } }
 @media (prefers-reduced-motion:reduce) { .galaxy-stars { animation:none !important; will-change:auto; } .stars-one,.stars-two { animation:none !important; transform:none !important; } }
-/* Optional Liquid Glass; disabled by default to preserve performance on older GPUs. */
-:root[data-glass="true"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window,.update-release-card,.update-version,.share-modal,.install-progress-card,.modal-note,.share-incoming-card,.share-code-panel,.instance-banner,.project-download-modal,.toast) {
- background-color:rgba(18,23,43,.48) !important; border-color:rgba(220,230,255,.20) !important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 12px 34px rgba(0,0,0,.16);
- -webkit-backdrop-filter:blur(18px) saturate(145%); backdrop-filter:blur(18px) saturate(145%);
-}
-:root[data-glass="true"] .app-shell :is(button,.primary-button,.secondary-button,.icon-button,.more-button,.play-button,.update-download,.rail-settings-button) {
- background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(170,190,255,.07)) !important;
- border:1px solid rgba(235,242,255,.24) !important; color:#edf2ff;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 18px rgba(0,0,0,.12);
- -webkit-backdrop-filter:blur(14px) saturate(150%); backdrop-filter:blur(14px) saturate(150%);
-}
-:root[data-glass="true"] .app-shell :is(button,.primary-button,.secondary-button,.icon-button,.more-button,.play-button,.update-download):hover:not(:disabled) {
- background:linear-gradient(135deg,rgba(255,255,255,.25),rgba(170,190,255,.13)) !important;
- border-color:color-mix(in srgb,var(--accent-color) 55%,white) !important;
-}
-:root[data-glass="true"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
-:root[data-glass="true"] .app-shell select,:root[data-glass="true"] .app-shell textarea {
- background:rgba(12,16,32,.48) !important; border-color:rgba(220,230,255,.20) !important;
- -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-}
-@media (prefers-reduced-transparency:reduce) {
- :root[data-glass="true"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window) {
-  -webkit-backdrop-filter:none; backdrop-filter:none; background-color:rgba(18,23,43,.92) !important;
- }
-}
-
-
-.settings-toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 12px 0;
-  border-top: 1px solid #ffffff18;
-  cursor: pointer;
-}
-.settings-toggle-row > span {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.settings-toggle-row small {
-  color: #aab4d5;
-  font-size: 9px;
-  line-height: 1.5;
-}
-.settings-card .settings-toggle-row input[type="checkbox"] {
-  width: 38px;
-  height: 20px;
-  min-height: 20px;
-  flex: 0 0 auto;
-  accent-color: var(--accent-color);
-  cursor: pointer;
-}
-
-
 /* 1.2.3: lightweight, seamless GPU-composited star drift. */
 .galaxy-nebula { filter: blur(48px); }
 .galaxy-stars {
@@ -2639,4 +2582,76 @@ p, span, strong, small, label {
 }
 @media (prefers-reduced-motion: reduce) {
   .galaxy-stars { animation: none !important; will-change: auto; }
+}
+
+
+/* 1.2.4: lighter hover feedback and responsive workspace sizing. */
+.app-shell button {
+  transition-duration: .12s !important;
+  transition-timing-function: ease-out !important;
+}
+.app-shell button:hover:not(:disabled) {
+  filter: none;
+}
+.main-content {
+  flex: 1 1 0;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+.sidebar-toggle {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border: 1px solid #ffffff20;
+  border-radius: 10px;
+  color: #dce4ff;
+  background: linear-gradient(145deg, #202945, #11182b);
+  box-shadow: 0 3px 10px #0004, inset 0 1px 0 #ffffff18;
+}
+.sidebar-toggle:hover {
+  color: #fff;
+  border-color: color-mix(in srgb, var(--accent-color) 62%, #ffffff55);
+  background: linear-gradient(145deg, #303d63, #18223d);
+  box-shadow: 0 4px 13px #0005, 0 0 0 2px color-mix(in srgb, var(--accent-color) 14%, transparent);
+}
+.sidebar-toggle:active {
+  transform: scale(.94);
+}
+.collapsed .sidebar-toggle {
+  margin-inline: auto;
+}
+:root[data-theme="dark"] .app-shell :is(.nav-item,.instance-item,.add-instance,.icon-button,.more-button,.primary-button,.secondary-button,.play-button,.update-download,.rail-settings-button,.sidebar-toggle) {
+  color: #e7e9ef;
+  border-color: #383b45;
+}
+:root[data-theme="dark"] .app-shell :is(.add-instance,.icon-button,.more-button,.secondary-button,.rail-settings-button,.sidebar-toggle) {
+  background: linear-gradient(180deg, #202127, #15161b);
+  box-shadow: inset 0 1px 0 #ffffff0d, 0 2px 7px #0005;
+}
+:root[data-theme="dark"] .app-shell :is(.primary-button,.play-button,.update-download) {
+  background: linear-gradient(180deg, #eeeeF2, #cfd2dc);
+  color: #111217;
+  border: 1px solid #ffffffb0;
+  box-shadow: 0 3px 12px #0007, inset 0 1px 0 #ffffff;
+}
+:root[data-theme="dark"] .app-shell :is(.nav-item,.instance-item):hover,
+:root[data-theme="dark"] .app-shell :is(.add-instance,.icon-button,.more-button,.secondary-button,.rail-settings-button,.sidebar-toggle):hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, #30323b, #202127);
+  border-color: #686d7b;
+}
+:root[data-theme="dark"] .app-shell :is(.primary-button,.play-button,.update-download):hover:not(:disabled) {
+  background: linear-gradient(180deg, #fff, #e2e4eb);
+  color: #08090c;
+  box-shadow: 0 4px 15px #0008, 0 0 0 2px #ffffff18;
+}
+:root[data-theme="dark"] .app-shell .nav-item.active {
+  color: #fff;
+  background: #ffffff14;
+  border-color: #ffffff35;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell button { transition: none !important; }
 }
