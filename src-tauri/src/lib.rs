@@ -1576,28 +1576,52 @@ async fn install_modloader(
             &instance_id,
         ).await?;
         emit_progress(&app, &instance_id, 2, 4, format!("Running {loader_key} installer with Java {}", required_java_major(&base_json, &instance.version)));
-        // Forge's client installer requires a launcher_profiles.json in its target
-        // directory, even when Minecraft has been installed by a third-party launcher.
-        // M4 keeps each instance isolated, so bootstrap the minimal launcher profile
-        // that Forge can safely inject its generated profile into.
-        fs::create_dir_all(&game_dir).map_err(|e| format!("Could not prepare the Forge game directory: {e}"))?;
+        // Forge and NeoForge client installers refuse to run unless their target
+        // contains a launcher_profiles.json. M4 does not use the Mojang launcher,
+        // so create a valid per-instance profile before invoking either installer.
+        fs::create_dir_all(&game_dir)
+            .map_err(|e| format!("Could not prepare the {loader_key} game directory: {e}"))?;
         let launcher_profiles_path = game_dir.join("launcher_profiles.json");
-        if !launcher_profiles_path.exists() {
-            let bootstrap_profiles = serde_json::json!({
-                "profiles": {},
-                "selectedProfile": "(Default)",
-                "settings": {}
+        let mut launcher_profiles = fs::read(&launcher_profiles_path)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+            .filter(Value::is_object)
+            .unwrap_or_else(|| serde_json::json!({}));
+
+        if !launcher_profiles.get("profiles").is_some_and(Value::is_object) {
+            launcher_profiles["profiles"] = serde_json::json!({});
+        }
+        if launcher_profiles["profiles"].get("M4").is_none() {
+            launcher_profiles["profiles"]["M4"] = serde_json::json!({
+                "name": "M4",
+                "type": "custom",
+                "lastVersionId": instance.version
             });
-            fs::write(
-                &launcher_profiles_path,
-                serde_json::to_vec_pretty(&bootstrap_profiles).map_err(|e| e.to_string())?,
-            ).map_err(|e| format!("Could not create the Forge launcher profile: {e}"))?;
+        }
+        if launcher_profiles.get("selectedProfile").is_none() {
+            launcher_profiles["selectedProfile"] = Value::String("M4".into());
+        }
+        if !launcher_profiles.get("settings").is_some_and(Value::is_object) {
+            launcher_profiles["settings"] = serde_json::json!({});
         }
 
-        // Run from the instance directory so Forge writes its installer log there.
+        let profile_bytes = serde_json::to_vec_pretty(&launcher_profiles)
+            .map_err(|e| format!("Could not serialize the {loader_key} launcher profile: {e}"))?;
+        let mut profile_file = fs::File::create(&launcher_profiles_path)
+            .map_err(|e| format!("Could not create the {loader_key} launcher profile: {e}"))?;
+        profile_file.write_all(&profile_bytes)
+            .and_then(|_| profile_file.sync_all())
+            .map_err(|e| format!("Could not save the {loader_key} launcher profile: {e}"))?;
+        if !launcher_profiles_path.is_file() || fs::metadata(&launcher_profiles_path).map_err(|e| e.to_string())?.len() == 0 {
+            return Err(format!("The {loader_key} launcher profile was not created in {}.", game_dir.display()));
+        }
+
+        // Run from the instance directory and pass its canonical path explicitly.
+        let install_dir = fs::canonicalize(&game_dir)
+            .map_err(|e| format!("Could not resolve the {loader_key} install directory: {e}"))?;
         let output = Command::new(&installer_java)
             .arg("-Djava.awt.headless=true")
-            .arg("-jar").arg(&installer_path).arg("--installClient").arg(&game_dir)
+            .arg("-jar").arg(&installer_path).arg("--installClient").arg(&install_dir)
             .current_dir(&game_dir)
             .output()
             .map_err(|e| format!("Could not run the {loader_key} installer with {}: {e}", installer_java.display()))?;
