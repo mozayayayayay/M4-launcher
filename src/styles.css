@@ -2362,14 +2362,7 @@ p, span, strong, small, label {
   box-shadow: 0 0 9px #fff9 !important;
 }
 
-/* M4 0.1.10 — compact controls, Snowy galaxy reskin and cursor-reactive stars. */
-:root { --star-shift-x:0px; --star-shift-y:0px; }
-.galaxy-stars { will-change:transform; transition:transform 180ms ease-out; }
-.stars-one { transform:translate3d(calc(var(--star-shift-x)*.45),calc(var(--star-shift-y)*.45),0); }
-.stars-two { transform:translate3d(calc(var(--star-shift-x)*-.8),calc(var(--star-shift-y)*-.8),0); }
-.galaxy-background .galaxy-nebula { transition:transform 260ms ease-out; }
-.nebula-one { translate:calc(var(--star-shift-x)*-.18) calc(var(--star-shift-y)*-.18); }
-.nebula-two { translate:calc(var(--star-shift-x)*.22) calc(var(--star-shift-y)*.22); }
+/* M4 compact controls and layered starfield. */
 .app-shell select { box-sizing:border-box; min-height:32px!important; height:32px!important; line-height:normal!important; padding:0 29px 0 9px!important; font-size:10px!important; text-overflow:ellipsis; }
 .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),.app-shell textarea { box-sizing:border-box; min-height:32px!important; height:32px; padding:6px 9px!important; font-size:10px; line-height:1.25; }
 .app-shell textarea { height:auto; }
@@ -2618,4 +2611,32 @@ p, span, strong, small, label {
   flex: 0 0 auto;
   accent-color: var(--accent-color);
   cursor: pointer;
+}
+
+
+/* 1.2.3: lightweight, seamless GPU-composited star drift. */
+.galaxy-nebula { filter: blur(48px); }
+.galaxy-stars {
+  backface-visibility: hidden;
+  will-change: transform;
+  pointer-events: none;
+}
+.stars-one { animation: m4-stars-transform-near 72s linear infinite !important; }
+.stars-two { animation: m4-stars-transform-far 108s linear infinite !important; }
+@keyframes m4-stars-transform-near {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-320px, -170px, 0); }
+}
+@keyframes m4-stars-transform-far {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-380px, -230px, 0); }
+}
+/* Keep expensive backdrop filtering opt-in; Liquid Glass enables it explicitly. */
+:root:not([data-glass="true"]) .topbar,
+:root:not([data-glass="true"]) .instance-rail {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-stars { animation: none !important; will-change: auto; }
 }
