@@ -110,14 +110,14 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.3
+            M0Z4 Launcher v1.2.4
 
-            - Optimized the galaxy starfield with compositor-based animation and removed a global MutationObserver that caused unnecessary React/DOM work.
-            - Batched console rendering so Minecraft output does not continuously re-render the launcher when the Console page is closed.
-            - Restored local .mrpack importing, with flexible Minecraft-version metadata parsing, loader detection, client files, overrides and pack icons.
-            - Improved Forge installer execution with headless mode, Java-version selection and better failure diagnostics.
-            - Removed the Snowy theme and added an optional Liquid Glass setting for panels, windows, inputs and buttons.
-            - Simplified Mods and Modpacks search placeholders to “Search”.
+            - Fixed Forge client installation in isolated instances by creating the launcher profile file Forge requires before running its installer.
+            - Removed the Liquid Glass setting and its related styling.
+            - Reduced hover animation durations to make controls feel more responsive on lower-powered computers.
+            - Made the main sections use the available workspace width so they shift left naturally when the instance sidebar collapses.
+            - Redesigned the sidebar collapse control.
+            - Refined Midnight theme buttons with clearer contrast, borders, hover states and primary actions.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
