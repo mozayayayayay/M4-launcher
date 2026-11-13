@@ -2744,39 +2744,44 @@ p, span, strong, small, label {
 }
 
 
-/* Keep the top navigation aligned with the workspace as the instance rail
-   collapses, with a more noticeable left shift for the navigation itself. */
+/* The collapsed header should use the freed rail space instead of preserving
+   the old wide brand gutter. */
 .topbar {
   transition:
-    padding-left .3s cubic-bezier(.2, .8, .2, 1),
-    gap .3s cubic-bezier(.2, .8, .2, 1);
+    padding-left .28s cubic-bezier(.2, .8, .2, 1),
+    gap .28s cubic-bezier(.2, .8, .2, 1);
 }
 .app-shell.sidebar-collapsed .topbar {
   padding-left: 8px;
-  gap: 16px;
+  gap: 8px;
 }
 .app-shell.sidebar-collapsed .brand {
-  min-width: 150px;
+  min-width: 105px;
 }
 
-/* Midnight: every button is text-only at rest. Only hover, keyboard focus,
-   or a selected state may reveal a subtle monochrome surface. */
-:root[data-theme="dark"] .app-shell button {
+/* Midnight button reset.
+   Use a deliberately more-specific selector than the older monochrome skin
+   above, which was reintroducing gradients and borders after the first fix. */
+:root[data-theme="dark"] body .app-shell button:not(:hover):not(:focus-visible):not(.active):not(.selected):not([aria-pressed="true"]):not([aria-selected="true"]) {
   color: inherit !important;
   background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
-  border: 1px solid transparent !important;
+  border-color: transparent !important;
+  border-style: solid !important;
   box-shadow: none !important;
+  text-shadow: none !important;
+  outline: none !important;
 }
-:root[data-theme="dark"] .app-shell button:hover:not(:disabled),
-:root[data-theme="dark"] .app-shell button:focus-visible {
-  color: #fff !important;
+:root[data-theme="dark"] body .app-shell button:hover:not(:disabled),
+:root[data-theme="dark"] body .app-shell button:focus-visible {
   background: #ffffff12 !important;
+  background-color: #ffffff12 !important;
   background-image: none !important;
   border-color: #ffffff30 !important;
   box-shadow: none !important;
 }
-:root[data-theme="dark"] .app-shell :is(
+:root[data-theme="dark"] body .app-shell :is(
   .nav-item.active,
   .instance-item.selected,
   .more-button.active,
@@ -2785,16 +2790,21 @@ p, span, strong, small, label {
   [aria-pressed="true"],
   [aria-selected="true"]
 ) {
-  color: #fff !important;
   background: #ffffff16 !important;
+  background-color: #ffffff16 !important;
   background-image: none !important;
   border-color: #ffffff38 !important;
   box-shadow: none !important;
 }
-:root[data-theme="dark"] .app-shell button:disabled {
+:root[data-theme="dark"] body .app-shell button:disabled {
   background: transparent !important;
+  background-color: transparent !important;
   background-image: none !important;
   border-color: transparent !important;
   box-shadow: none !important;
   opacity: .42;
+}
+:root[data-theme="dark"] body .app-shell button::before,
+:root[data-theme="dark"] body .app-shell button::after {
+  box-shadow: none !important;
 }
