@@ -16,7 +16,8 @@ type LauncherSettings = {
   resolutionWidth: number;
   resolutionHeight: number;
   fullscreen: boolean;
-  theme: "galaxy" | "dark" | "snowy";
+  theme: "galaxy" | "dark";
+  liquidGlass: boolean;
   accentColor: string;
   language: "en" | "ar";
 };
@@ -33,6 +34,7 @@ const defaults: LauncherSettings = {
   resolutionHeight: 720,
   fullscreen: false,
   theme: "galaxy",
+  liquidGlass: false,
   accentColor: "#9B8CFF",
   language: "en",
 };
@@ -94,7 +96,8 @@ function normalizeSettings(
   return {
     ...defaults,
     ...saved,
-    theme: savedTheme === "light" ? "snowy" : (savedTheme as LauncherSettings["theme"] | undefined) ?? defaults.theme,
+    theme: savedTheme === "dark" ? "dark" : "galaxy",
+    liquidGlass: saved?.liquidGlass ?? false,
     javaPath: saved?.javaPath ?? ""
   };
 }
@@ -115,8 +118,9 @@ export default function SettingsPage({ selected, onNotice }: Props) {
       settings.accentColor
     );
     document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.dataset.glass = settings.liquidGlass ? "true" : "false";
     document.documentElement.dataset.language = settings.language;
-  }, [settings.accentColor, settings.theme, settings.language]);
+  }, [settings.accentColor, settings.theme, settings.liquidGlass, settings.language]);
 
   useEffect(() => {
     let active = true;
@@ -354,8 +358,16 @@ export default function SettingsPage({ selected, onNotice }: Props) {
               >
                 <option value="galaxy">Galaxy</option>
                 <option value="dark">Midnight</option>
-                <option value="snowy">Snowy</option>
               </select>
+            </label>
+
+            <label className="settings-toggle-row">
+              <span>
+                Liquid Glass
+                <small>Apply translucent glass surfaces to windows, panels and buttons.</small>
+              </span>
+              <input type="checkbox" checked={settings.liquidGlass}
+                onChange={(event) => updateSetting("liquidGlass", event.target.checked)} />
             </label>
 
             <label>
