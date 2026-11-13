@@ -2745,13 +2745,56 @@ p, span, strong, small, label {
 
 
 /* Keep the top navigation aligned with the workspace as the instance rail
-   collapses, so the whole launcher shifts its visual focus left together. */
+   collapses, with a more noticeable left shift for the navigation itself. */
 .topbar {
   transition:
     padding-left .3s cubic-bezier(.2, .8, .2, 1),
     gap .3s cubic-bezier(.2, .8, .2, 1);
 }
 .app-shell.sidebar-collapsed .topbar {
-  padding-left: 18px;
-  gap: 40px;
+  padding-left: 8px;
+  gap: 16px;
+}
+.app-shell.sidebar-collapsed .brand {
+  min-width: 150px;
+}
+
+/* Midnight: every button is text-only at rest. Only hover, keyboard focus,
+   or a selected state may reveal a subtle monochrome surface. */
+:root[data-theme="dark"] .app-shell button {
+  color: inherit !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .app-shell button:hover:not(:disabled),
+:root[data-theme="dark"] .app-shell button:focus-visible {
+  color: #fff !important;
+  background: #ffffff12 !important;
+  background-image: none !important;
+  border-color: #ffffff30 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .app-shell :is(
+  .nav-item.active,
+  .instance-item.selected,
+  .more-button.active,
+  .rail-settings-button.active,
+  .mods-subnav-button.active,
+  [aria-pressed="true"],
+  [aria-selected="true"]
+) {
+  color: #fff !important;
+  background: #ffffff16 !important;
+  background-image: none !important;
+  border-color: #ffffff38 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .app-shell button:disabled {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: .42;
 }
