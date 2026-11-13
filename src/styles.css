@@ -2863,3 +2863,23 @@ p, span, strong, small, label {
 .app-shell .restored-action-button svg {
   flex: 0 0 auto;
 }
+
+
+/* v1.2.15 Arabic readability and low-overhead idle screen. */
+:root[data-language="ar"] .app-shell,
+:root[data-language="ar"] .app-shell * {
+  font-family: "Noto Sans Arabic", sans-serif !important;
+}
+:root[data-language="ar"] .app-shell :is(p, label, button, input, select, textarea, .eyebrow, .info-label, .section-title, .page-heading, .nav-item, .instance-name, .rail-heading, .instance-item, .notice, .modal-note, .play-instance, .rail-settings-button) {
+  font-size: max(12px, 1.12em) !important;
+  line-height: 1.5;
+}
+.idle-screen {
+  width: 100%; height: 100vh; min-height: 100vh; display: grid; place-items: center;
+  padding: 28px; overflow: hidden; background: #070914; color: #f0f2ff; text-align: center;
+}
+.idle-message {
+  max-width: 900px; font-family: "Minecraft", sans-serif; font-size: clamp(24px, 4vw, 48px);
+  line-height: 1.35; font-weight: 700; letter-spacing: .01em;
+}
+:root[data-theme="dark"] .idle-screen { background: #000; color: #fff; }
