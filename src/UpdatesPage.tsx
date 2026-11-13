@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
+import { Download, RefreshCw } from "lucide-react";
 
 type Asset = { name: string; browser_download_url: string };
 type Release = { tag_name: string; html_url: string; body?: string; assets: Asset[] };
@@ -124,7 +125,14 @@ export default function UpdatesPage({ onProgress, onNotice }: Props) {
     <section className="updates-page">
       <div className="page-heading">
         <div><div className="eyebrow">M0Z4 RELEASES</div><h1>M0Z4 Launcher updates</h1><p>Check for the latest launcher release and update M0Z4 without manually running a new installer.</p></div>
-        <button className="secondary-button" onClick={() => void checkForUpdates()} disabled={checking || installing}>{checking ? "Checking…" : "Check again"}</button>
+        <button
+          type="button"
+          className="secondary-button restored-action-button"
+          onClick={() => void checkForUpdates()}
+          disabled={checking || installing}
+        >
+          <RefreshCw size={15} /> {checking ? "Checking…" : "Check again"}
+        </button>
       </div>
       <div className="update-release-card">
         {checking ? <p className="update-message">Checking for updates…</p> : failed && !release ? <p className="update-message">Could not check for updates. Check your internet connection and try again.</p> : release ? <>
@@ -141,7 +149,15 @@ export default function UpdatesPage({ onProgress, onNotice }: Props) {
             </div>
           )}
           <div className="update-actions">
-            {pendingUpdate && <button className="update-download" onClick={() => void installUpdate()} disabled={installing}>Update now</button>}
+            <button
+              type="button"
+              className="update-download restored-action-button"
+              onClick={() => void installUpdate()}
+              disabled={!pendingUpdate || installing || checking}
+              title={!pendingUpdate ? "No signed in-app update is currently available." : "Download and install the latest signed update."}
+            >
+              <Download size={15} /> {installing ? "Installing…" : "Update now"}
+            </button>
             {linux && <a className="update-download" href={linux.browser_download_url} target="_blank" rel="noreferrer">Download Linux installer (.deb)</a>}
             {windows && <a className="update-download" href={windows.browser_download_url} target="_blank" rel="noreferrer">Download Windows installer (.exe)</a>}
 
