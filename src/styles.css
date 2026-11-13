@@ -2382,7 +2382,7 @@ p, span, strong, small, label {
 .memory-slider-ticks span::before { content:""; position:absolute; top:0; left:50%; width:1px; height:5px; background:var(--accent-color); opacity:.8; }
 
 
-/* v0.1.11: low-cost, seamless star drift and theme-aware glass surfaces. */
+/* v0.1.11: low-cost, seamless star drift. */
 .galaxy-stars {
   backface-visibility: hidden;
   will-change: transform;
@@ -2406,7 +2406,7 @@ p, span, strong, small, label {
   to { transform: translate3d(-380px, -230px, 0); }
 }
 
-/* The starfield already spans the full app shell; glass in the rail lets it show through. */
+/* The starfield spans the full app shell behind the translucent rail. */
 .workspace {
   background: transparent;
 }
@@ -2523,16 +2523,14 @@ p, span, strong, small, label {
 }
 
 
-/* Keep the glass rail translucent even under the high-specificity theme skins. */
+/* Keep the translucent rail consistent under the high-specificity theme skins. */
 :root[data-theme="dark"] .app-shell .instance-rail {
   background: rgba(7, 7, 7, .46) !important;
   border-right-color: #ffffff1c !important;
 }
 
 
-/* v0.2.2: force the real instance rail to remain a translucent glass layer.
-   The rail sits directly over the animated starfield; theme skins must not
-   replace this surface with an opaque fill. */
+/* v0.2.2: keep the instance rail translucent over the animated starfield. */
 :root[data-theme="galaxy"] body .app-shell .workspace > aside.instance-rail {
   background: rgba(9, 11, 24, .26) !important;
   background-color: rgba(9, 11, 24, .26) !important;
@@ -2573,12 +2571,6 @@ p, span, strong, small, label {
 @keyframes m4-stars-transform-far {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-380px, -230px, 0); }
-}
-/* Keep expensive backdrop filtering opt-in; Liquid Glass enables it explicitly. */
-:root:not([data-glass="true"]) .topbar,
-:root:not([data-glass="true"]) .instance-rail {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .galaxy-stars { animation: none !important; will-change: auto; }
