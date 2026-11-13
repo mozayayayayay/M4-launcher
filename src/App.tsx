@@ -908,6 +908,9 @@ export default function App() {
     return (
       <div className="idle-screen">
         <div className="idle-message">Instance launched, going into idle state.</div>
+        <button className="idle-exit-button" onClick={() => setIdle(false)}>
+          Exit idle mode
+        </button>
       </div>
     );
   }
