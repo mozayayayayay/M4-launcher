@@ -19,11 +19,13 @@ type LauncherSettings = {
   theme: "galaxy" | "dark";
   accentColor: string;
   language: "en" | "ar";
+  discordRpcEnabled: boolean;
 };
 
 type Props = {
   selected: Instance | null;
   onNotice: (message: string) => void;
+  onDiscordPresenceChange: (enabled: boolean) => void;
 };
 
 const defaults: LauncherSettings = {
@@ -35,6 +37,7 @@ const defaults: LauncherSettings = {
   theme: "galaxy",
   accentColor: "#9B8CFF",
   language: "en",
+  discordRpcEnabled: false,
 };
 
 const optionLabels: Record<string, string> = {
@@ -99,7 +102,7 @@ function normalizeSettings(
   };
 }
 
-export default function SettingsPage({ selected, onNotice }: Props) {
+export default function SettingsPage({ selected, onNotice, onDiscordPresenceChange }: Props) {
   const [settings, setSettings] = useState<LauncherSettings>(defaults);
 
   const [minecraftOptions, setMinecraftOptions] = useState<
@@ -197,6 +200,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
 
     try {
       await invoke("save_launcher_settings", { settings });
+      onDiscordPresenceChange(settings.discordRpcEnabled);
 
       if (selected) {
         await invoke("save_minecraft_options", {
@@ -227,6 +231,7 @@ export default function SettingsPage({ selected, onNotice }: Props) {
       }
 
       setSettings(defaults);
+      onDiscordPresenceChange(defaults.discordRpcEnabled);
       setMinecraftOptions({});
       onNotice("Launcher and Minecraft settings restored to defaults.");
     } catch (error) {
@@ -367,6 +372,25 @@ export default function SettingsPage({ selected, onNotice }: Props) {
                 }
               />
             </label>
+          </div>
+
+          <div className="section-title">
+            <div>
+              <h3>Discord Rich Presence</h3>
+              <p>Show what you are doing in M4 or Minecraft on your Discord profile.</p>
+            </div>
+          </div>
+
+          <div className="info-card settings-card">
+            <label className="discord-presence-setting">
+              <span>Enable Discord Rich Presence</span>
+              <input
+                type="checkbox"
+                checked={settings.discordRpcEnabled}
+                onChange={(event) => updateSetting("discordRpcEnabled", event.target.checked)}
+              />
+            </label>
+            <small>Discord Desktop must be open. Your selected instance name, Minecraft version, and loader may be shown while playing.</small>
           </div>
 
           <div className="section-title">

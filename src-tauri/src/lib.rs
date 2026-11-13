@@ -1,6 +1,7 @@
 
 mod settings_accounts;
 mod native_share;
+mod discord_presence;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -3036,6 +3037,7 @@ fn finish_instance_share_receive(
 pub fn run() {
     tauri::Builder::default()
         .manage(native_share::NativeShareState::default())
+        .manage(discord_presence::DiscordPresenceState::new())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new()
@@ -3053,6 +3055,7 @@ pub fn run() {
             install_minecraft_version,
             install_modloader,
             launch_minecraft,
+            discord_presence::update_discord_presence,
             search_modrinth,
             install_modrinth_mod,
             get_modrinth_project_details,

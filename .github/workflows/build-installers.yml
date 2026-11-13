@@ -110,12 +110,11 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.15
+            M0Z4 Launcher v1.2.16
 
-            - Starts maximized with the instance sidebar collapsed by default.
-            - Improves Arabic readability with a dedicated Arabic font and larger UI text.
-            - Adds a lightweight, theme-colored idle screen after Minecraft starts and restores M4 when the game exits.
-            - Builds for Linux DEB and Windows setup.
+            - Adds optional Discord Rich Presence for M4 navigation and active Minecraft instances.
+            - Fixes Galaxy theme button text contrast.
+            - Preserves the existing idle screen, updater, and Windows/Linux installer support.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

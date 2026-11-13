@@ -2906,3 +2906,30 @@ p, span, strong, small, label {
   text-underline-offset: 7px;
 }
 :root[data-theme="dark"] .idle-screen { background: #000; color: #fff; }
+
+
+/* v1.2.16: Galaxy uses a light text palette consistently for every button. */
+:root[data-theme="galaxy"] body .app-shell button {
+  color: #f0f2ff !important;
+}
+:root[data-theme="galaxy"] body .app-shell button:disabled {
+  color: #aab1c8 !important;
+}
+:root[data-theme="galaxy"] body .app-shell button:hover:not(:disabled),
+:root[data-theme="galaxy"] body .app-shell button:focus-visible {
+  color: #ffffff !important;
+}
+.discord-presence-setting {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.discord-presence-setting input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  min-height: 17px !important;
+  margin: 0;
+  accent-color: var(--accent-color);
+}

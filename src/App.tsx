@@ -103,6 +103,7 @@ export default function App() {
   const [page, setPage] = useState<Page>("Home");
   const [collapsed, setCollapsed] = useState(true);
   const [idle, setIdle] = useState(false);
+  const [discordEnabled, setDiscordEnabled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sharingMode, setSharingMode] = useState<"send" | "receive" | null>(null);
   const [modal, setModal] = useState<"new" | "install" | null>(null);
@@ -257,6 +258,14 @@ export default function App() {
     return () => {
       active = false;
     };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    invoke<{ discordRpcEnabled?: boolean }>("get_launcher_settings")
+      .then((settings) => { if (active) setDiscordEnabled(Boolean(settings.discordRpcEnabled)); })
+      .catch(() => undefined);
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -903,6 +912,17 @@ export default function App() {
   const installedPackMods: string[] = Array.isArray(installedModpack?.mods)
     ? installedModpack.mods
     : installedMods;
+
+  useEffect(() => {
+    const instanceLabel = selected
+      ? `${selected.name} · ${selected.version} · ${selected.loader}`
+      : "No instance selected";
+    void invoke("update_discord_presence", {
+      enabled: discordEnabled,
+      details: idle ? "Playing Minecraft" : "Using M4 Launcher",
+      stateText: idle ? instanceLabel : `${page} · ${instanceLabel}`
+    }).catch(() => undefined);
+  }, [discordEnabled, idle, page, selected?.id, selected?.name, selected?.version, selected?.loader]);
 
   if (idle) {
     return (
@@ -1647,7 +1667,7 @@ export default function App() {
                   overflowX: "hidden"
                 }}
               >
-                <SettingsPage selected={selected} onNotice={setNotice} />
+                <SettingsPage selected={selected} onNotice={setNotice} onDiscordPresenceChange={setDiscordEnabled} />
               </div>
             )}
 
