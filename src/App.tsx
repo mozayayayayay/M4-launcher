@@ -133,28 +133,6 @@ export default function App() {
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [installedModpack, setInstalledModpack] = useState<Record<string, any> | null>(null);
 
-  useEffect(() => {
-    const applyPlaceholders = (root: ParentNode) => {
-      root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach((field) => {
-        const type = field instanceof HTMLInputElement ? field.type : "textarea";
-        if (!["checkbox", "radio", "color", "range", "file", "button", "submit", "reset", "hidden"].includes(type)) {
-          field.placeholder = "insert here";
-        }
-      });
-    };
-    applyPlaceholders(document);
-    const observer = new MutationObserver((records) => {
-      for (const record of records) {
-        record.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) applyPlaceholders(node);
-        });
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-
-
   const projectsPageRef = useRef<HTMLDivElement>(null);
   const iconInputRef = useRef<HTMLInputElement>(null);
 
@@ -230,7 +208,8 @@ export default function App() {
     invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
-        document.documentElement.dataset.theme = settings.theme === "light" ? "snowy" : settings.theme ?? "galaxy";
+        document.documentElement.dataset.theme = settings.theme === "dark" ? "dark" : "galaxy";
+        document.documentElement.dataset.glass = settings.liquidGlass ? "true" : "false";
         document.documentElement.dataset.language = settings.language === "ar" ? "ar" : "en";
         document.documentElement.style.setProperty(
           "--accent-color",
@@ -1279,7 +1258,7 @@ export default function App() {
                               void searchProjects(0);
                             }
                           }}
-                          placeholder={isModpacksPage ? "Search modpacks..." : isTexturePacksPage ? "Search texture packs..." : isShadersPage ? "Search shaders..." : "Search mods..."}
+                          placeholder="Search"
                           style={{ flex: 1, minWidth: 0 }}
                         />
 
