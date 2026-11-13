@@ -110,9 +110,10 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.7
+            M0Z4 Launcher v1.2.8
 
-            - Fixed relative modloader artifact and native-library URLs by resolving them against their repository before HTTPS validation; retained trusted-host HTTPS upgrades.
+            - Fixed relative modloader artifact and native-library URLs by resolving them against their repository before HTTPS validation.
+            - Fixed native-only legacy libraries such as jinput-platform so M4 downloads their platform classifiers without inventing a missing base JAR URL.
             - Restored rounded Midnight theme buttons and reduced hover-animation jitter by keeping button hitboxes stable.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
