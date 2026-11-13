@@ -1995,6 +1995,7 @@ async fn launch_minecraft(
             Ok(status) => format!("Minecraft process exited: {status}"),
             Err(error) => format!("Could not monitor Minecraft process: {error}"),
         };
+        let _ = exit_app.emit("minecraft-process-exited", exit_instance_id.clone());
         let _ = exit_app.emit(
             "console-output",
             ConsoleOutput {
