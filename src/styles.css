@@ -2882,4 +2882,27 @@ p, span, strong, small, label {
   max-width: 900px; font-family: "Minecraft", sans-serif; font-size: clamp(24px, 4vw, 48px);
   line-height: 1.35; font-weight: 700; letter-spacing: .01em;
 }
+.idle-exit-button {
+  margin-top: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: "Minecraft", sans-serif;
+  font-size: clamp(24px, 4vw, 48px);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: .01em;
+  cursor: pointer;
+  opacity: .82;
+  transition: opacity .18s ease;
+}
+.idle-exit-button:hover,
+.idle-exit-button:focus-visible {
+  opacity: 1;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 7px;
+}
 :root[data-theme="dark"] .idle-screen { background: #000; color: #fff; }
