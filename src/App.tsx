@@ -205,7 +205,7 @@ export default function App() {
     const stopLocalization = installLocalization();
     let active = true;
 
-    invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
+    invoke<{ theme?: string; accentColor?: string; language?: string; liquidGlass?: boolean }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
         document.documentElement.dataset.theme = settings.theme === "dark" ? "dark" : "galaxy";
