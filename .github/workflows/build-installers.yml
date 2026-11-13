@@ -110,10 +110,11 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.5
+            M0Z4 Launcher v1.2.6
 
-            - Fixed Forge and NeoForge client installation in isolated instances by safely creating and validating the launcher profile file their installers require before running.
-                        - Builds for Linux DEB and Windows setup.
+            - Fixed legacy non-HTTPS Minecraft library URLs during normal and native library downloads, upgrading trusted official Maven hosts to HTTPS.
+            - Restored rounded Midnight theme buttons and reduced hover-animation jitter by keeping button hitboxes stable.
+            - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
