@@ -2808,3 +2808,49 @@ p, span, strong, small, label {
 :root[data-theme="dark"] body .app-shell button::after {
   box-shadow: none !important;
 }
+
+
+/* 1.2.12 performance pass: keep navigation and content responsive on
+   integrated GPUs and lower-memory machines. Avoid large-area blur filters,
+   backdrop compositing, and continuous background animation. */
+.app-shell .galaxy-nebula {
+  filter: none !important;
+  opacity: .34;
+  background: radial-gradient(ellipse at center, rgba(91, 105, 205, .32) 0%, rgba(72, 54, 130, .16) 42%, transparent 74%) !important;
+}
+.app-shell .nebula-two {
+  background: radial-gradient(ellipse at center, rgba(104, 54, 145, .22) 0%, transparent 72%) !important;
+}
+.app-shell .galaxy-stars,
+.app-shell .stars-one,
+.app-shell .stars-two {
+  animation: none !important;
+  will-change: auto !important;
+  transform: none !important;
+  backface-visibility: visible !important;
+}
+.app-shell :is(.topbar, .instance-rail, .info-card, .modal-backdrop, .modal, .dropdown-menu) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.app-shell .page-transition {
+  animation: none !important;
+}
+.app-shell button,
+.app-shell .instance-rail,
+.app-shell .topbar {
+  transition-duration: 100ms !important;
+}
+.app-shell .info-card {
+  contain: layout style;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
