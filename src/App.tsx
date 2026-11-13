@@ -151,6 +151,7 @@ export default function App() {
 
   const [installedMods, setInstalledMods] = useState<string[]>([]);
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
+  const consoleEntriesRef = useRef<ConsoleEntry[]>([]);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -271,20 +272,29 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (page === "Console") setConsoleEntries(consoleEntriesRef.current);
     let unlisten: (() => void) | undefined;
+    let frame = 0;
+    let flushScheduled = false;
 
     listen<Omit<ConsoleEntry, "receivedAt">>("console-output", (event) => {
-      const entry: ConsoleEntry = {
-        ...event.payload,
-        receivedAt: Date.now()
-      };
-      setConsoleEntries((current) => [...current, entry].slice(-1500));
-    }).then((stop) => {
-      unlisten = stop;
-    });
+      const entry: ConsoleEntry = { ...event.payload, receivedAt: Date.now() };
+      consoleEntriesRef.current = [...consoleEntriesRef.current, entry].slice(-1500);
+      // Keep log output off the main React render path unless the Console is visible.
+      if (page === "Console" && !flushScheduled) {
+        flushScheduled = true;
+        frame = requestAnimationFrame(() => {
+          flushScheduled = false;
+          setConsoleEntries(consoleEntriesRef.current);
+        });
+      }
+    }).then((stop) => { unlisten = stop; });
 
-    return () => unlisten?.();
-  }, []);
+    return () => {
+      unlisten?.();
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [page]);
 
   useEffect(() => {
     if (selectedId) {
@@ -1530,7 +1540,7 @@ export default function App() {
                   </div>
                   <button
                     className="secondary-button"
-                    onClick={() => setConsoleEntries([])}
+                    onClick={() => { consoleEntriesRef.current = []; setConsoleEntries([]); }}
                   >
                     <Trash size={15} /> Clear console
                   </button>
