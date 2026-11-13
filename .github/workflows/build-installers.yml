@@ -110,11 +110,12 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.12
+            M0Z4 Launcher v1.2.13
 
-            - Reduced UI lag across Home, Mods, Modpacks, Texture Packs, and Shaders by removing costly full-screen blur/backdrop compositing and continuous starfield animation.
-            - Removed the page re-entry animation that forced large sections to animate on every navigation.
-            - Preserved the existing layouts and features while reducing rendering work for integrated GPUs and lower-memory systems.
+            - Restored the original Galaxy nebula appearance, including its soft blur and original colors.
+            - Restored the two continuously drifting star layers at their original speeds.
+            - Kept the lighter navigation transitions and removed page re-entry animation for smoother section switching.
+            - Preserved the existing layouts, themes, and features.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
