@@ -110,12 +110,12 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.9
+            M0Z4 Launcher v1.2.10
 
             - Fixed relative modloader artifact and native-library URLs by resolving them against their repository before HTTPS validation.
             - Fixed native-only legacy libraries such as jinput-platform so M4 downloads their platform classifiers without inventing a missing base JAR URL.
-            - Made controls text-first and consistent across all themes; button surfaces appear only on hover, keyboard focus, or selection.
-            - Made the top navigation shift left smoothly when the instance sidebar is collapsed.
+            - Made controls text-first across all themes, including Midnight; button surfaces appear only on hover, keyboard focus, or selection.
+            - Made the top navigation shift farther left when the instance sidebar is collapsed, and reduced the brand-to-navigation gap.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
