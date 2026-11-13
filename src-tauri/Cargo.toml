@@ -1,7 +1,7 @@
 
 [package]
 name = "moza-launcher"
-version = "1.2.6"
+version = "1.2.7"
 description = "M0Z4 Minecraft Launcher"
 authors = ["M0Z4"]
 edition = "2021"
