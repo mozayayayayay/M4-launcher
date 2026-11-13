@@ -2237,6 +2237,51 @@ async fn install_modrinth_mod_version(
 // Local .mrpack import and Modrinth modpack installation
 // --------------------------------------------------
 
+fn manifest_version_text(value: &Value) -> Option<String> {
+    if let Some(text) = value.as_str() {
+        let text = text.trim();
+        return (!text.is_empty()).then(|| text.to_string());
+    }
+    if let Some(object) = value.as_object() {
+        for key in ["version", "id", "minecraft", "gameVersion", "game_version"] {
+            if let Some(value) = object.get(key) {
+                if let Some(text) = manifest_version_text(value) {
+                    return Some(text);
+                }
+            }
+        }
+    }
+    if let Some(items) = value.as_array() {
+        for item in items {
+            if let Some(text) = manifest_version_text(item) {
+                return Some(text);
+            }
+        }
+    }
+    None
+}
+
+fn minecraft_version_from_manifest(manifest: &Value) -> Option<String> {
+    let dependencies = manifest.get("dependencies");
+    if let Some(object) = dependencies.and_then(Value::as_object) {
+        for (key, value) in object {
+            if key.eq_ignore_ascii_case("minecraft") {
+                if let Some(version) = manifest_version_text(value) {
+                    return Some(version);
+                }
+            }
+        }
+    }
+    for key in ["minecraftVersion", "minecraft_version", "gameVersion", "game_version", "minecraft"] {
+        if let Some(value) = manifest.get(key) {
+            if let Some(version) = manifest_version_text(value) {
+                return Some(version);
+            }
+        }
+    }
+    None
+}
+
 #[tauri::command]
 async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String> {
  let archive_path=PathBuf::from(&path);
@@ -2252,14 +2297,11 @@ async fn import_mrpack(app: AppHandle, path: String) -> Result<Instance, String>
  };
  let manifest:Value=serde_json::from_slice(&manifest_bytes).map_err(|e|format!("Invalid modpack manifest: {e}"))?;
  let deps=manifest.get("dependencies").and_then(Value::as_object);
- let mc=deps.and_then(|d|d.get("minecraft")).and_then(|v|v.as_str().or_else(||v.get("version").and_then(Value::as_str)))
-  .or_else(||manifest.get("minecraftVersion").and_then(Value::as_str))
-  .or_else(||manifest.get("minecraft_version").and_then(Value::as_str))
-  .or_else(||manifest.get("minecraft").and_then(|v|v.as_str().or_else(||v.get("version").and_then(Value::as_str))))
-  .map(str::trim).filter(|v|!v.is_empty()).ok_or_else(||{
+ let mc=minecraft_version_from_manifest(&manifest).ok_or_else(||{
    let keys=deps.map(|d|d.keys().cloned().collect::<Vec<_>>().join(", ")).unwrap_or_else(||"none".into());
-   format!("The modpack does not specify a Minecraft version. Manifest dependency keys: {keys}.")
-  })?.to_string();
+   let format=manifest.get("formatVersion").and_then(Value::as_u64).map(|v|v.to_string()).unwrap_or_else(||"unknown".into());
+   format!("The modpack manifest has no readable Minecraft version (formatVersion: {format}; dependency keys: {keys}).")
+  })?;
  let aliases:[(&str,&[&str]);4]=[("fabric",&["fabric-loader","fabric"]),("forge",&["forge"]),("neoforge",&["neoforge"]),("quilt",&["quilt-loader","quilt"])];
  let (loader,loader_version)=aliases.iter().find_map(|(name,keys)|keys.iter().find_map(|key|deps.and_then(|d|d.get(*key))
   .and_then(|v|v.as_str().or_else(||v.get("version").and_then(Value::as_str))).map(|v|((*name).to_string(),v.to_string()))))
@@ -2368,15 +2410,8 @@ async fn install_modrinth_modpack(
     let manifest: Value = serde_json::from_slice(&manifest_bytes).map_err(|e| format!("Invalid modpack manifest: {e}"))?;
     let dependencies = manifest["dependencies"].as_object()
         .ok_or("The modpack dependencies are missing.")?;
-    // Accept the canonical Modrinth manifest and common third-party variants.
-    let mc_version = dependencies.get("minecraft")
-        .and_then(|dependency| dependency.as_str()
-            .or_else(|| dependency["version"].as_str()))
-        .or_else(|| manifest["minecraftVersion"].as_str())
-        .or_else(|| manifest["minecraft_version"].as_str())
-        .map(str::trim).filter(|value| !value.is_empty())
-        .ok_or("The modpack does not specify a Minecraft version in dependencies.minecraft.")?
-        .to_string();
+    let mc_version = minecraft_version_from_manifest(&manifest)
+        .ok_or("The modpack manifest has no readable Minecraft version (expected dependencies.minecraft).")?;
     let loader_aliases: [(&str, &[&str]); 4] = [
         ("fabric", &["fabric-loader", "fabric"]),
         ("forge", &["forge"]),
