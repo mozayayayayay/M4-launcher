@@ -2749,7 +2749,7 @@ fn finish_instance_share_receive(
         serde_json::from_slice::<Value>(&bytes).map_err(|e| format!("Invalid incoming instance manifest: {e}"))?
     };
     let name = manifest["name"].as_str().unwrap_or("Shared Instance").trim();
-    let name = if name.is_empty() { "Shared Instance" } else { name }.chars().take(80).collect::<String>();
+    let name = (if name.is_empty() { "Shared Instance" } else { name }).chars().take(80).collect::<String>();
     let version = manifest["version"].as_str().ok_or("Shared instance Minecraft version is missing.")?.to_string();
     let loader = manifest["loader"].as_str().unwrap_or("Vanilla").to_string();
     let loader_version = manifest["loaderVersion"].as_str().unwrap_or("—").to_string();
