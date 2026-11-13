@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: m0z4-installer-release
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -111,10 +111,13 @@ jobs:
           releaseBody: |
             M0Z4 Launcher v1.2.3
 
-            - Improved Forge installer execution and diagnostic capture, including installer logs from the instance directory.
-            - Hardened .mrpack Minecraft-version parsing for string and object dependency formats and common exported manifest variants.
-            - Recognized canonical fabric-loader and quilt-loader dependency keys and accepted packs with an empty file list.
-            - Bumped the launcher to v1.2.3 for Linux and Windows builds.
+            - Optimized the galaxy starfield with compositor-based animation and removed a global MutationObserver that caused unnecessary React/DOM work.
+            - Batched console rendering so Minecraft output does not continuously re-render the launcher when the Console page is closed.
+            - Restored local .mrpack importing, with flexible Minecraft-version metadata parsing, loader detection, client files, overrides and pack icons.
+            - Improved Forge installer execution with headless mode, Java-version selection and better failure diagnostics.
+            - Removed the Snowy theme and added an optional Liquid Glass setting for panels, windows, inputs and buttons.
+            - Simplified Mods and Modpacks search placeholders to “Search”.
+            - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
