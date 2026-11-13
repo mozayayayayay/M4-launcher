@@ -47,6 +47,7 @@ pub struct LauncherSettings {
     pub theme: String,
     pub accent_color: String,
     pub language: String,
+    pub discord_rpc_enabled: bool,
 }
 
 impl Default for LauncherSettings {
@@ -60,6 +61,7 @@ impl Default for LauncherSettings {
             theme: "galaxy".into(),
             accent_color: "#9B8CFF".into(),
             language: "en".into(),
+            discord_rpc_enabled: false,
         }
     }
 }
