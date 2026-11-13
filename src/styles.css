@@ -2669,7 +2669,7 @@ p, span, strong, small, label {
 }
 
 
-/* 1.2.9: text-first controls across every theme.
+/* 1.2.8: text-first controls across every theme.
    Controls stay visually quiet until hovered, focused, or selected. */
 .app-shell button {
   background: transparent !important;
@@ -2741,4 +2741,17 @@ p, span, strong, small, label {
   border-color: transparent !important;
   box-shadow: none !important;
   opacity: .42;
+}
+
+
+/* Keep the top navigation aligned with the workspace as the instance rail
+   collapses, so the whole launcher shifts its visual focus left together. */
+.topbar {
+  transition:
+    padding-left .3s cubic-bezier(.2, .8, .2, 1),
+    gap .3s cubic-bezier(.2, .8, .2, 1);
+}
+.app-shell.sidebar-collapsed .topbar {
+  padding-left: 18px;
+  gap: 40px;
 }
