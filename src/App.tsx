@@ -101,7 +101,8 @@ export default function App() {
   const [instances, setInstances] = useState<Instance[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("Home");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
+  const [idle, setIdle] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sharingMode, setSharingMode] = useState<"send" | "receive" | null>(null);
   const [modal, setModal] = useState<"new" | "install" | null>(null);
@@ -271,6 +272,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (idle) return;
     if (page === "Console") setConsoleEntries(consoleEntriesRef.current);
     let unlisten: (() => void) | undefined;
     let frame = 0;
@@ -293,7 +295,16 @@ export default function App() {
       unlisten?.();
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [page]);
+  }, [page, idle]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    listen<string>("minecraft-process-exited", () => {
+      setIdle(false);
+      setNotice("Minecraft closed. M4 is ready.");
+    }).then((stop) => { unlisten = stop; });
+    return () => unlisten?.();
+  }, []);
 
   useEffect(() => {
     if (selectedId) {
@@ -549,7 +560,8 @@ export default function App() {
         id: selected.id
       });
 
-      setNotice(`Launching ${selected.name}...`);
+      setIdle(true);
+      setNotice("");
     } catch (error) {
       setNotice(`Couldn't launch Minecraft: ${String(error)}`);
     } finally {
@@ -573,7 +585,8 @@ export default function App() {
         });
         await refreshInstances();
         await invoke("launch_minecraft", { id: selected.id });
-        setNotice(`Installed ${selected.loader} and launched ${selected.name}.`);
+        setIdle(true);
+        setNotice("");
       } catch (error) {
         setNotice(`Couldn't prepare or launch ${selected.name}: ${String(error)}`);
       } finally {
@@ -890,6 +903,14 @@ export default function App() {
   const installedPackMods: string[] = Array.isArray(installedModpack?.mods)
     ? installedModpack.mods
     : installedMods;
+
+  if (idle) {
+    return (
+      <div className="idle-screen">
+        <div className="idle-message">Instance launched, going into idle state.</div>
+      </div>
+    );
+  }
 
   return (
     <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
