@@ -6,7 +6,7 @@ import { listen } from "@tauri-apps/api/event";
 import {
   ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Cpu, Gamepad2, Layers3, Home,
   Library, Plus, Settings, UserRound, X, Image, Sparkles,
-  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, Share2
+  Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, Share2, Pencil
 } from "lucide-react";
 
 import SettingsPage from "./SettingsPage";
@@ -772,6 +772,40 @@ export default function App() {
     }
   }
 
+  async function renameSelectedInstance() {
+    if (!selected || busy) return;
+
+    const enteredName = window.prompt("Enter a new name for this instance:", selected.name);
+    if (enteredName === null) return;
+
+    const name = enteredName.trim();
+    if (!name) {
+      setNotice("Instance name cannot be empty.");
+      return;
+    }
+    if (name === selected.name) {
+      setMenuOpen(false);
+      return;
+    }
+
+    try {
+      const updated = await invoke<Instance>("update_instance", {
+        id: selected.id,
+        name,
+        version: selected.version,
+        loader: selected.loader,
+        loaderVersion: selected.loaderVersion
+      });
+      setInstances((current) =>
+        current.map((instance) => instance.id === updated.id ? updated : instance)
+      );
+      setMenuOpen(false);
+      setNotice(`Renamed instance to "${updated.name}".`);
+    } catch (error) {
+      setNotice(`Couldn't rename instance: ${String(error)}`);
+    }
+  }
+
   async function deleteSelectedInstance() {
     if (!selected || busy) return;
 
@@ -1172,6 +1206,10 @@ export default function App() {
 
                               <button onClick={openInstaller}>
                                 <Download size={16} /> Install Minecraft version
+                              </button>
+
+                              <button onClick={renameSelectedInstance}>
+                                <Pencil size={16} /> Rename instance
                               </button>
 
                               <button onClick={openFolder}>
