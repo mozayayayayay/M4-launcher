@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { listen } from "@tauri-apps/api/event";
 import {
-  ChevronLeft, ChevronRight, Cpu, Gamepad2, Layers3, Home,
+  ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, Cpu, Gamepad2, Layers3, Home,
   Library, Plus, Settings, UserRound, X, Image, Sparkles,
   Ellipsis, Download, Search, Trash2, FolderOpen, Package, Terminal, Trash, Share2
 } from "lucide-react";
@@ -206,11 +206,10 @@ export default function App() {
     const stopLocalization = installLocalization();
     let active = true;
 
-    invoke<{ theme?: string; accentColor?: string; language?: string; liquidGlass?: boolean }>("get_launcher_settings")
+    invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
         document.documentElement.dataset.theme = settings.theme === "dark" ? "dark" : "galaxy";
-        document.documentElement.dataset.glass = settings.liquidGlass ? "true" : "false";
         document.documentElement.dataset.language = settings.language === "ar" ? "ar" : "en";
         document.documentElement.style.setProperty(
           "--accent-color",
@@ -920,11 +919,11 @@ export default function App() {
             )}
 
             <button
-              className="icon-button subtle"
+              className="icon-button subtle sidebar-toggle"
               onClick={() => setCollapsed(!collapsed)}
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+              {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
             </button>
           </div>
 
