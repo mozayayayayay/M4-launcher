@@ -2501,11 +2501,11 @@ async fn install_modrinth_modpack(
             "loaderVersion": imported.loader_version,
             "installedOverrides": extracted_overrides,
             "mods": installed_mods,
-            "importedFrom": archive_path.file_name().and_then(|name| name.to_str()).unwrap_or("modpack.mrpack"),
+            "importedFrom": filename,
         });
         fs::write(game_dir.join(".m0z4-modpack.json"), serde_json::to_vec_pretty(&metadata).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
-        Ok(imported)
+        Ok(metadata)
     }.await;
 
     match install_result {
@@ -2525,6 +2525,277 @@ async fn install_modrinth_modpack(
             Err(error)
         }
     }
+}
+
+
+
+fn encode_base64(bytes: &[u8]) -> String {
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut output = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    for chunk in bytes.chunks(3) {
+        let a = chunk[0] as u32;
+        let b = chunk.get(1).copied().unwrap_or(0) as u32;
+        let c = chunk.get(2).copied().unwrap_or(0) as u32;
+        let value = (a << 16) | (b << 8) | c;
+        output.push(TABLE[((value >> 18) & 63) as usize] as char);
+        output.push(TABLE[((value >> 12) & 63) as usize] as char);
+        output.push(if chunk.len() > 1 { TABLE[((value >> 6) & 63) as usize] as char } else { '=' });
+        output.push(if chunk.len() > 2 { TABLE[(value & 63) as usize] as char } else { '=' });
+    }
+    output
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ShareArchiveInfo {
+    archive_id: String,
+    size: u64,
+    sha256: String,
+    name: String,
+    version: String,
+    loader: String,
+    loader_version: String,
+    mod_count: usize,
+    include_saves: bool,
+}
+
+fn share_directory(app: &AppHandle) -> Result<PathBuf, String> {
+    let directory = app.path().app_data_dir().map_err(|e| e.to_string())?.join("share-transfers");
+    fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
+    Ok(directory)
+}
+
+fn share_archive_path(app: &AppHandle, archive_id: &str) -> Result<PathBuf, String> {
+    let id = Uuid::parse_str(archive_id).map_err(|_| "Invalid sharing archive identifier.")?;
+    Ok(share_directory(app)?.join(format!("{id}.zip")))
+}
+
+fn add_share_directory(
+    zip: &mut zip::ZipWriter<fs::File>,
+    root: &Path,
+    directory: &Path,
+    include_saves: bool,
+    file_count: &mut usize,
+) -> Result<(), String> {
+    for entry in fs::read_dir(directory).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        let kind = entry.file_type().map_err(|e| e.to_string())?;
+        if kind.is_symlink() { continue; }
+        let relative = path.strip_prefix(root).map_err(|e| e.to_string())?;
+        let relative_text = relative.to_string_lossy().replace('\\', "/");
+        if !include_saves && (relative_text == "saves" || relative_text.starts_with("saves/")) { continue; }
+        if kind.is_dir() {
+            add_share_directory(zip, root, &path, include_saves, file_count)?;
+        } else if kind.is_file() {
+            *file_count += 1;
+            if *file_count > 200_000 { return Err("This instance contains too many files to share.".into()); }
+            let safe = safe_relative_path(&relative_text)?;
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+            zip.start_file(safe.to_string_lossy().replace('\\', "/"), options)
+                .map_err(|e| format!("Could not add an instance file to the archive: {e}"))?;
+            let mut source = fs::File::open(&path).map_err(|e| e.to_string())?;
+            std::io::copy(&mut source, zip).map_err(|e| format!("Could not archive {}: {e}", relative_text))?;
+        }
+    }
+    Ok(())
+}
+
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let file = fs::File::open(path).map_err(|e| e.to_string())?;
+    let mut reader = BufReader::new(file);
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 1024 * 1024];
+    loop {
+        let count = reader.read(&mut buffer).map_err(|e| e.to_string())?;
+        if count == 0 { break; }
+        hasher.update(&buffer[..count]);
+    }
+    Ok(hex::encode(hasher.finalize()))
+}
+
+#[tauri::command]
+fn create_instance_share_archive(
+    app: AppHandle,
+    instance_id: String,
+    include_saves: bool,
+) -> Result<ShareArchiveInfo, String> {
+    let data = load_data(&app)?;
+    let instance = data.instances.iter().find(|item| item.id == instance_id)
+        .ok_or("Instance not found.")?.clone();
+    let archive_id = Uuid::new_v4().to_string();
+    let archive_path = share_archive_path(&app, &archive_id)?;
+    let file = fs::File::create(&archive_path).map_err(|e| format!("Could not create share archive: {e}"))?;
+    let mut zip = zip::ZipWriter::new(file);
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+    let manifest = serde_json::json!({
+        "name": instance.name,
+        "version": instance.version,
+        "loader": instance.loader,
+        "loaderVersion": instance.loader_version,
+        "memoryMb": instance.memory_mb,
+        "javaPath": instance.java_path,
+        "launchVersionId": instance.launch_version_id,
+        "icon": instance.icon,
+        "includeSaves": include_saves
+    });
+    zip.start_file("m4-share-manifest.json", options).map_err(|e| e.to_string())?;
+    zip.write_all(&serde_json::to_vec(&manifest).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    let mut file_count = 0usize;
+    add_share_directory(&mut zip, Path::new(&instance.game_dir), Path::new(&instance.game_dir), include_saves, &mut file_count)?;
+    let file = zip.finish().map_err(|e| format!("Could not finalize share archive: {e}"))?;
+    file.sync_all().map_err(|e| e.to_string())?;
+    let size = file.metadata().map_err(|e| e.to_string())?.len();
+    let sha256 = sha256_file(&archive_path)?;
+    Ok(ShareArchiveInfo {
+        archive_id, size, sha256, name: instance.name, version: instance.version,
+        loader: instance.loader, loader_version: instance.loader_version,
+        mod_count: count_mods(&instance), include_saves
+    })
+}
+
+#[tauri::command]
+fn read_instance_share_chunk(
+    app: AppHandle,
+    archive_id: String,
+    offset: u64,
+    length: u32,
+) -> Result<Vec<u8>, String> {
+    if length == 0 || length > 16 * 1024 { return Err("Invalid sharing chunk size.".into()); }
+    let path = share_archive_path(&app, &archive_id)?;
+    let mut file = fs::File::open(path).map_err(|e| e.to_string())?;
+    let size = file.metadata().map_err(|e| e.to_string())?.len();
+    if offset > size || offset.saturating_add(length as u64) > size {
+        return Err("Requested sharing chunk is outside the archive.".into());
+    }
+    file.seek(SeekFrom::Start(offset)).map_err(|e| e.to_string())?;
+    let mut bytes = vec![0u8; length as usize];
+    file.read_exact(&mut bytes).map_err(|e| e.to_string())?;
+    Ok(bytes)
+}
+
+#[tauri::command]
+fn delete_instance_share_archive(app: AppHandle, archive_id: String) -> Result<(), String> {
+    let path = share_archive_path(&app, &archive_id)?;
+    if path.exists() { fs::remove_file(path).map_err(|e| e.to_string())?; }
+    Ok(())
+}
+
+#[tauri::command]
+fn begin_instance_share_receive(app: AppHandle, archive_size: u64) -> Result<String, String> {
+    if archive_size == 0 || archive_size > 8 * 1024 * 1024 * 1024 {
+        return Err("The incoming instance archive exceeds the 8 GB transfer limit.".into());
+    }
+    let id = Uuid::new_v4().to_string();
+    let path = share_archive_path(&app, &id)?;
+    let file = fs::File::create(path).map_err(|e| format!("Could not prepare incoming archive: {e}"))?;
+    file.set_len(archive_size).map_err(|e| format!("Could not reserve incoming archive space: {e}"))?;
+    Ok(id)
+}
+
+#[tauri::command]
+fn discard_instance_share_receive(app: AppHandle, archive_id: String) -> Result<(), String> {
+    let path = share_archive_path(&app, &archive_id)?;
+    if path.exists() { fs::remove_file(path).map_err(|e| e.to_string())?; }
+    Ok(())
+}
+
+#[tauri::command]
+fn write_instance_share_chunk(
+    app: AppHandle,
+    archive_id: String,
+    offset: u64,
+    archive_size: u64,
+    bytes: Vec<u8>,
+) -> Result<(), String> {
+    if bytes.is_empty() || bytes.len() > 16 * 1024 { return Err("Invalid incoming sharing chunk size.".into()); }
+    if archive_size == 0 || archive_size > 8 * 1024 * 1024 * 1024 || offset.saturating_add(bytes.len() as u64) > archive_size {
+        return Err("Incoming sharing chunk is outside the declared archive size.".into());
+    }
+    let path = share_archive_path(&app, &archive_id)?;
+    let mut file = fs::OpenOptions::new().write(true).open(path).map_err(|e| e.to_string())?;
+    if file.metadata().map_err(|e| e.to_string())?.len() != archive_size {
+        return Err("Incoming archive size does not match the approved manifest.".into());
+    }
+    file.seek(SeekFrom::Start(offset)).map_err(|e| e.to_string())?;
+    file.write_all(&bytes).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn finish_instance_share_receive(
+    app: AppHandle,
+    archive_id: String,
+    expected_sha256: String,
+) -> Result<Instance, String> {
+    if expected_sha256.len() != 64 || !expected_sha256.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err("Invalid incoming archive checksum.".into());
+    }
+    let archive_path = share_archive_path(&app, &archive_id)?;
+    let archive_size = fs::metadata(&archive_path).map_err(|e| e.to_string())?.len();
+    if archive_size == 0 || archive_size > 8 * 1024 * 1024 * 1024 { return Err("Incoming archive size is invalid.".into()); }
+    let actual = sha256_file(&archive_path)?;
+    if !actual.eq_ignore_ascii_case(&expected_sha256) { return Err("Incoming instance archive checksum verification failed.".into()); }
+
+    let manifest = {
+        let mut archive = zip::ZipArchive::new(fs::File::open(&archive_path).map_err(|e| e.to_string())?)
+            .map_err(|e| format!("Invalid incoming instance archive: {e}"))?;
+        let mut file = archive.by_name("m4-share-manifest.json").map_err(|_| "Incoming instance manifest is missing.".to_string())?;
+        if file.size() > 1024 * 1024 { return Err("Incoming instance manifest is too large.".into()); }
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+        serde_json::from_slice::<Value>(&bytes).map_err(|e| format!("Invalid incoming instance manifest: {e}"))?
+    };
+    let name = manifest["name"].as_str().unwrap_or("Shared Instance").trim();
+    let name = if name.is_empty() { "Shared Instance" } else { name }.chars().take(80).collect::<String>();
+    let version = manifest["version"].as_str().ok_or("Shared instance Minecraft version is missing.")?.to_string();
+    let loader = manifest["loader"].as_str().unwrap_or("Vanilla").to_string();
+    let loader_version = manifest["loaderVersion"].as_str().unwrap_or("—").to_string();
+    let new_id = Uuid::new_v4().to_string();
+    let game_dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("instances").join(&new_id);
+    fs::create_dir_all(&game_dir).map_err(|e| e.to_string())?;
+    let extract_result: Result<(), String> = (|| {
+        let mut archive = zip::ZipArchive::new(fs::File::open(&archive_path).map_err(|e| e.to_string())?)
+            .map_err(|e| format!("Invalid incoming instance archive: {e}"))?;
+        if archive.len() > 200_001 { return Err("Incoming instance archive contains too many files.".into()); }
+        let mut total_unpacked = 0u64;
+        for index in 0..archive.len() {
+            let mut entry = archive.by_index(index).map_err(|e| e.to_string())?;
+            if entry.name() == "m4-share-manifest.json" || entry.is_dir() { continue; }
+            total_unpacked = total_unpacked.saturating_add(entry.size());
+            if total_unpacked > 16 * 1024 * 1024 * 1024 { return Err("Incoming instance expands beyond the 16 GB safety limit.".into()); }
+            let relative = safe_relative_path(entry.name())?;
+            let destination = game_dir.join(relative);
+            fs::create_dir_all(destination.parent().ok_or("Invalid incoming file destination.")?).map_err(|e| e.to_string())?;
+            let mut output = fs::File::create(destination).map_err(|e| e.to_string())?;
+            std::io::copy(&mut entry, &mut output).map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    })();
+    if let Err(error) = extract_result { let _ = fs::remove_dir_all(&game_dir); return Err(error); }
+
+    let instance = Instance {
+        id: new_id.clone(), name, version,
+        loader: loader.clone(), loader_version,
+        icon: manifest["icon"].as_str().unwrap_or("").to_string(),
+        status: "Installed".into(),
+        game_dir: game_dir.to_string_lossy().to_string(),
+        memory_mb: manifest["memoryMb"].as_u64().unwrap_or(2048).clamp(512, 32768) as u32,
+        java_path: manifest["javaPath"].as_str().map(str::to_string),
+        launch_version_id: manifest["launchVersionId"].as_str().map(str::to_string),
+        mods: 0,
+    };
+    let mut data = load_data(&app)?;
+    data.instances.push(instance.clone());
+    data.selected_instance = Some(new_id);
+    let mut imported = instance;
+    imported.mods = count_mods(&imported);
+    if let Some(last) = data.instances.last_mut() { last.mods = imported.mods; }
+    if let Err(error) = save_data(&app, &data) { let _ = fs::remove_dir_all(&game_dir); return Err(error); }
+    let _ = fs::remove_file(archive_path);
+    Ok(imported)
 }
 
 
