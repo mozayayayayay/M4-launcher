@@ -409,6 +409,11 @@ async fn download_file(
         .error_for_status()
         .map_err(|e| format!("Download failed: {e}"))?;
 
+    // Do not allow an HTTPS URL to silently redirect a library download to HTTP.
+    if response.url().scheme() != "https" {
+        return Err(format!("Download redirected to an insecure URL: {}", response.url()));
+    }
+
     let bytes = response.bytes().await.map_err(|e| e.to_string())?;
 
     if let Some(expected) = expected_sha1 {
@@ -1297,6 +1302,51 @@ fn maven_artifact_path(coordinate: &str) -> Option<String> {
     Some(format!("{group}/{artifact}/{version}/{artifact}-{version}{suffix}.{extension}"))
 }
 
+// Forge 1.12.x profiles commonly contain the historical HTTP repository
+// http://files.minecraftforge.net/maven/. Upgrade only known official Maven
+// hosts; never turn an arbitrary third-party HTTP URL into an HTTPS request.
+fn secure_library_url(raw_url: &str) -> Result<String, String> {
+    let mut url = reqwest::Url::parse(raw_url)
+        .map_err(|error| format!("Invalid modloader library URL: {error}"))?;
+
+    if url.scheme() == "https" {
+        return Ok(url.to_string());
+    }
+
+    if url.scheme() != "http" {
+        return Err(format!("A modloader library supplied an unsupported URL scheme: {}", url.scheme()));
+    }
+
+    let host = url.host_str().unwrap_or("").to_ascii_lowercase();
+    let trusted_http_hosts = [
+        "files.minecraftforge.net",
+        "maven.minecraftforge.net",
+        "maven.neoforged.net",
+        "repo1.maven.org",
+        "repo.maven.apache.org",
+        "libraries.minecraft.net",
+    ];
+
+    if !trusted_http_hosts.contains(&host.as_str()) {
+        return Err(format!("A modloader library supplied an untrusted non-HTTPS URL: {raw_url}"));
+    }
+
+    if host == "files.minecraftforge.net" {
+        url.set_host(Some("maven.minecraftforge.net"))
+            .map_err(|_| "Could not upgrade the legacy Forge Maven host to HTTPS".to_string())?;
+        let path = url.path().to_string();
+        if let Some(rest) = path.strip_prefix("/maven/") {
+            url.set_path(&format!("/{rest}"));
+        } else if path == "/maven" {
+            url.set_path("/");
+        }
+    }
+
+    url.set_scheme("https")
+        .map_err(|_| "Could not upgrade the modloader library URL to HTTPS".to_string())?;
+    Ok(url.to_string())
+}
+
 async fn prepare_libraries_and_natives(
     client: &reqwest::Client,
     version_json: &Value,
@@ -1345,9 +1395,7 @@ async fn prepare_libraries_and_natives(
             });
 
             if let Some(url) = url {
-                if !url.starts_with("https://") {
-                    return Err("A modloader library supplied a non-HTTPS URL".into());
-                }
+                let url = secure_library_url(&url)?;
                 downloads.push((
                     url,
                     artifact_path.clone(),
