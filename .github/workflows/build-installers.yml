@@ -110,9 +110,9 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.6
+            M0Z4 Launcher v1.2.7
 
-            - Fixed legacy non-HTTPS Minecraft library URLs during normal and native library downloads, upgrading trusted official Maven hosts to HTTPS.
+            - Fixed relative modloader artifact and native-library URLs by resolving them against their repository before HTTPS validation; retained trusted-host HTTPS upgrades.
             - Restored rounded Midnight theme buttons and reduced hover-animation jitter by keeping button hitboxes stable.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
