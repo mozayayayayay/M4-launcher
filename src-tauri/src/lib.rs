@@ -1347,6 +1347,25 @@ fn secure_library_url(raw_url: &str) -> Result<String, String> {
     Ok(url.to_string())
 }
 
+
+// Modloader metadata occasionally stores artifact/classifier URLs as paths
+// relative to the library's repository (for example, "group/artifact/file.jar").
+// Resolve those paths against the repository before applying HTTPS validation.
+fn resolve_library_url(raw_url: &str, repository_url: &str) -> Result<String, String> {
+    match reqwest::Url::parse(raw_url) {
+        Ok(url) => Ok(url.to_string()),
+        Err(_) => {
+            let base = reqwest::Url::parse(repository_url).map_err(|error| {
+                format!("Invalid modloader library repository URL '{repository_url}': {error}")
+            })?;
+            let resolved = base.join(raw_url).map_err(|error| {
+                format!("Could not resolve relative modloader library URL '{raw_url}' against '{repository_url}': {error}")
+            })?;
+            Ok(resolved.to_string())
+        }
+    }
+}
+
 async fn prepare_libraries_and_natives(
     client: &reqwest::Client,
     version_json: &Value,
@@ -1384,7 +1403,9 @@ async fn prepare_libraries_and_natives(
             let fallback_url = library["url"]
                 .as_str()
                 .unwrap_or("https://libraries.minecraft.net/");
-            let url = artifact["url"].as_str().map(str::to_string).or_else(|| {
+            let url = if let Some(raw_url) = artifact["url"].as_str() {
+                Some(resolve_library_url(raw_url, fallback_url)?)
+            } else {
                 fallback_path.as_ref().map(|path| {
                     format!(
                         "{}{}",
@@ -1392,7 +1413,7 @@ async fn prepare_libraries_and_natives(
                         format!("/{path}")
                     )
                 })
-            });
+            };
 
             if let Some(url) = url {
                 let url = secure_library_url(&url)?;
@@ -1427,7 +1448,11 @@ async fn prepare_libraries_and_natives(
                 let archive_path = game_dir.join("libraries").join(relative);
                 // Apply the same HTTPS validation and trusted-host upgrade used
                 // for ordinary artifacts to native classifier downloads too.
-                let url = secure_library_url(url)?;
+                let repository_url = library["url"]
+                    .as_str()
+                    .unwrap_or("https://libraries.minecraft.net/");
+                let resolved_url = resolve_library_url(url, repository_url)?;
+                let url = secure_library_url(&resolved_url)?;
                 downloads.push((
                     url,
                     archive_path.clone(),
