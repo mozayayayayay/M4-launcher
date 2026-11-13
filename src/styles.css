@@ -1335,105 +1335,6 @@ p, span, strong, small, label {
   opacity: .12;
 }
 
-:root[data-theme="snowy"] body {
-  background: #eaf8ff;
-  color: #00a6c7;
-}
-
-:root[data-theme="snowy"] .app-shell {
-  color: #00a6c7;
-  background:
-    radial-gradient(ellipse at 12% 0%, #ffffff 0%, transparent 45%),
-    radial-gradient(ellipse at 88% 18%, #d5f5ff 0%, transparent 42%),
-    linear-gradient(145deg, #f8fdff, #e4f5fc);
-}
-
-:root[data-theme="snowy"] .topbar,
-:root[data-theme="snowy"] .instance-rail {
-  background: #f5fcffed;
-  border-color: #b9e6f2;
-}
-
-:root[data-theme="snowy"] .brand,
-:root[data-theme="snowy"] .nav-item,
-:root[data-theme="snowy"] .instance-item,
-:root[data-theme="snowy"] .page-heading,
-:root[data-theme="snowy"] .section-title h3 {
-  color: #009fbe;
-}
-
-:root[data-theme="snowy"] .info-card,
-:root[data-theme="snowy"] .bottom-play,
-:root[data-theme="snowy"] .console-window {
-  background: #ffffffdf;
-  color: #00a6c7;
-  border-color: #c3eaf3;
-}
-
-:root[data-theme="snowy"] .console-window {
-  background: #151a2a;
-  color: #e4e9ff;
-}
-
-:root[data-theme="snowy"] input,
-:root[data-theme="snowy"] select {
-  color-scheme: light;
-  color: #009fbe;
-  border-color: #b9e6f2;
-}
-
-
-:root[data-theme="snowy"] .galaxy-background {
-  opacity: .12;
-  filter: saturate(.45) brightness(1.7);
-}
-
-:root[data-theme="snowy"] .nav-item,
-:root[data-theme="snowy"] .instance-item,
-:root[data-theme="snowy"] .brand-byline,
-:root[data-theme="snowy"] .page-heading,
-:root[data-theme="snowy"] .section-title,
-:root[data-theme="snowy"] .info-label,
-:root[data-theme="snowy"] .play-instance strong,
-:root[data-theme="snowy"] .play-instance small,
-:root[data-theme="snowy"] .eyebrow,
-:root[data-theme="snowy"] .placeholder-page,
-:root[data-theme="snowy"] .placeholder-page h1,
-:root[data-theme="snowy"] .placeholder-page p {
-  color: #00a6c7;
-}
-
-:root[data-theme="snowy"] .bottom-play,
-:root[data-theme="snowy"] .settings-card,
-:root[data-theme="snowy"] .modal,
-:root[data-theme="snowy"] .dropdown {
-  background: #f8fdffed;
-  color: #00a6c7;
-  border-color: #b9e6f2;
-}
-
-:root[data-theme="snowy"] .app-shell :is(h1, h2, h3, h4, p, span, strong, small, label, button, li, a) {
-  color: #00a6c7;
-}
-
-:root[data-theme="snowy"] .play-button {
-  background: #b9f0fb;
-  color: #007f9c;
-}
-
-:root[data-theme="snowy"] .play-button:hover {
-  background: #a5e9f7;
-}
-
-:root[data-theme="snowy"] .secondary-button,
-:root[data-theme="snowy"] .primary-button {
-  color: #007f9c;
-}
-
-:root[data-theme="snowy"] .bottom-play {
-  box-shadow: 0 8px 28px #8dcddd30;
-}
-
 /* Animation keyframes */
 
 @keyframes page-enter {
@@ -1757,236 +1658,6 @@ p, span, strong, small, label {
   }
 }
 
-/* Snowy theme: consistent frosted-glass surfaces across every launcher page. */
-:root[data-theme="snowy"] {
-  color-scheme: light;
-  --snow-ink: #087f9d;
-  --snow-ink-strong: #05647e;
-  --snow-muted: #478fa3;
-  --snow-border: #a9dce9;
-  --snow-surface: #f8fdff;
-  --snow-surface-soft: #eaf8fc;
-  --snow-accent: #19b8d6;
-  --accent-color: #19b8d6;
-}
-
-:root[data-theme="snowy"] body {
-  background: #eaf8fc;
-  color: var(--snow-ink);
-}
-
-:root[data-theme="snowy"] .app-shell {
-  color: var(--snow-ink);
-  background:
-    radial-gradient(ellipse at 8% 5%, #ffffff 0%, #ffffff00 42%),
-    radial-gradient(ellipse at 88% 12%, #c8f0fa 0%, #c8f0fa00 40%),
-    radial-gradient(ellipse at 45% 100%, #d6f1f8 0%, #d6f1f800 48%),
-    linear-gradient(145deg, #f8fdff 0%, #e8f7fc 52%, #dff2f8 100%);
-}
-
-:root[data-theme="snowy"] .galaxy-background {
-  opacity: .18;
-  filter: hue-rotate(145deg) saturate(.5) brightness(1.8);
-}
-
-:root[data-theme="snowy"] .topbar,
-:root[data-theme="snowy"] .instance-rail {
-  background: #f7fcffed;
-  border-color: var(--snow-border);
-  box-shadow: 0 8px 28px #5bb5ca12;
-}
-
-:root[data-theme="snowy"] .brand,
-:root[data-theme="snowy"] .brand-byline,
-:root[data-theme="snowy"] .rail-heading,
-:root[data-theme="snowy"] .rail-heading small,
-:root[data-theme="snowy"] .rail-footer,
-:root[data-theme="snowy"] .nav-item,
-:root[data-theme="snowy"] .instance-item,
-:root[data-theme="snowy"] .page-heading,
-:root[data-theme="snowy"] .page-heading h1,
-:root[data-theme="snowy"] .page-heading p,
-:root[data-theme="snowy"] .section-title,
-:root[data-theme="snowy"] .section-title h3,
-:root[data-theme="snowy"] .section-title p,
-:root[data-theme="snowy"] .eyebrow,
-:root[data-theme="snowy"] .info-label,
-:root[data-theme="snowy"] .info-card,
-:root[data-theme="snowy"] .info-card strong,
-:root[data-theme="snowy"] .info-card small,
-:root[data-theme="snowy"] .placeholder-page,
-:root[data-theme="snowy"] .placeholder-page h1,
-:root[data-theme="snowy"] .placeholder-page p,
-:root[data-theme="snowy"] .play-instance strong,
-:root[data-theme="snowy"] .play-instance small,
-:root[data-theme="snowy"] .dropdown,
-:root[data-theme="snowy"] .dropdown button,
-:root[data-theme="snowy"] .dropdown-heading,
-:root[data-theme="snowy"] .modal,
-:root[data-theme="snowy"] .modal-heading h3,
-:root[data-theme="snowy"] .modal label,
-:root[data-theme="snowy"] .modal-note,
-:root[data-theme="snowy"] .settings-card,
-:root[data-theme="snowy"] .settings-card label,
-:root[data-theme="snowy"] .mods-page,
-:root[data-theme="snowy"] .mods-page h1,
-:root[data-theme="snowy"] .mods-page h2,
-:root[data-theme="snowy"] .mods-page h3,
-:root[data-theme="snowy"] .mods-page p,
-:root[data-theme="snowy"] .mods-page span,
-:root[data-theme="snowy"] .mods-page small,
-:root[data-theme="snowy"] .mods-page label,
-:root[data-theme="snowy"] .utility-page-scroll,
-:root[data-theme="snowy"] .utility-page-scroll h1,
-:root[data-theme="snowy"] .utility-page-scroll h2,
-:root[data-theme="snowy"] .utility-page-scroll h3,
-:root[data-theme="snowy"] .utility-page-scroll p,
-:root[data-theme="snowy"] .utility-page-scroll span,
-:root[data-theme="snowy"] .utility-page-scroll label {
-  color: var(--snow-ink);
-}
-
-:root[data-theme="snowy"] .nav-item.active,
-:root[data-theme="snowy"] .instance-item.selected {
-  color: var(--snow-ink-strong);
-  background: #c9f0f8;
-  box-shadow: inset 0 0 0 1px #8ed8e8;
-}
-
-:root[data-theme="snowy"] .info-card,
-:root[data-theme="snowy"] .bottom-play,
-:root[data-theme="snowy"] .console-window,
-:root[data-theme="snowy"] .settings-card,
-:root[data-theme="snowy"] .modal,
-:root[data-theme="snowy"] .dropdown,
-:root[data-theme="snowy"] .mods-page .info-card,
-:root[data-theme="snowy"] .utility-page-scroll .info-card {
-  background: #f9fdffed;
-  border-color: var(--snow-border);
-  box-shadow: 0 10px 30px #4ba9bf14, inset 0 1px 0 #ffffff;
-  color: var(--snow-ink);
-}
-
-:root[data-theme="snowy"] .console-window {
-  background: #eaf7fb;
-  color: #176b82;
-}
-
-:root[data-theme="snowy"] .console-window * {
-  color: #176b82;
-}
-
-:root[data-theme="snowy"] .hero-card.instance-banner {
-  border-color: #a5dce9;
-  background:
-    radial-gradient(ellipse at 78% 45%, #a9e9f5 0%, #a9e9f500 48%),
-    radial-gradient(ellipse at 12% 5%, #ffffff 0%, #ffffff00 52%),
-    linear-gradient(115deg, #eafaff 0%, #d5f3fa 52%, #bfeaf4 100%);
-  box-shadow: 0 18px 48px #4ba9bf1c, inset 0 1px 0 #ffffff;
-}
-
-:root[data-theme="snowy"] .instance-banner::before {
-  opacity: .5;
-  background-image:
-    radial-gradient(2px 2px at 12% 25%, #ffffff 99%, transparent),
-    radial-gradient(2px 2px at 34% 76%, #ffffff 99%, transparent),
-    radial-gradient(2px 2px at 68% 24%, #ffffff 99%, transparent),
-    radial-gradient(1px 1px at 90% 66%, #ffffff 99%, transparent);
-}
-
-:root[data-theme="snowy"] .banner-logo {
-  background: linear-gradient(145deg, #ffffffed, #d6f4fa);
-  border-color: #9dd9e7;
-  box-shadow: 0 8px 24px #4ba9bf22, inset 0 1px 0 #ffffff;
-}
-
-:root[data-theme="snowy"] .banner-logo span,
-:root[data-theme="snowy"] .banner-copy h2,
-:root[data-theme="snowy"] .banner-copy p,
-:root[data-theme="snowy"] .dot-separator {
-  color: var(--snow-ink-strong);
-  text-shadow: none;
-}
-
-:root[data-theme="snowy"] .banner-planet {
-  background: radial-gradient(circle at 30% 25%, #ffffff, #9fe3f0 45%, #56b7ce 100%);
-  box-shadow: 0 0 48px #4cbcd766, inset -10px -10px 20px #1686a333;
-}
-
-:root[data-theme="snowy"] .banner-orbit {
-  border-color: #55b9ce99;
-}
-
-:root[data-theme="snowy"] .info-icon {
-  color: #087f9d;
-  background: #d8f3f9;
-}
-
-:root[data-theme="snowy"] input,
-:root[data-theme="snowy"] select,
-:root[data-theme="snowy"] textarea {
-  color-scheme: light;
-  color: var(--snow-ink-strong);
-  background: #ffffff;
-  border-color: var(--snow-border);
-}
-
-:root[data-theme="snowy"] input::placeholder,
-:root[data-theme="snowy"] textarea::placeholder {
-  color: #6b9eac;
-}
-
-:root[data-theme="snowy"] .primary-button,
-:root[data-theme="snowy"] .play-button {
-  color: #ffffff;
-  background: linear-gradient(135deg, #20b9d6, #0795b7);
-  box-shadow: 0 7px 18px #0795b733;
-}
-
-:root[data-theme="snowy"] .primary-button:hover,
-:root[data-theme="snowy"] .play-button:hover {
-  color: #ffffff;
-  background: linear-gradient(135deg, #42cce3, #0b9fbe);
-}
-
-:root[data-theme="snowy"] .secondary-button,
-:root[data-theme="snowy"] .icon-button,
-:root[data-theme="snowy"] .more-button {
-  color: var(--snow-ink-strong);
-  background: #e4f7fb;
-  border-color: var(--snow-border);
-}
-
-:root[data-theme="snowy"] .secondary-button:hover,
-:root[data-theme="snowy"] .icon-button:hover,
-:root[data-theme="snowy"] .more-button:hover {
-  color: #045b72;
-  background: #d0f0f7;
-}
-
-:root[data-theme="snowy"] .bottom-play {
-  background: #f9fdfff2;
-  border-color: #9dd9e7;
-  box-shadow: 0 12px 32px #388da51f;
-}
-
-:root[data-theme="snowy"] .modal-backdrop {
-  background: #b8dce8a8;
-}
-
-:root[data-theme="snowy"] .modal-heading h3 {
-  color: var(--snow-ink-strong);
-}
-
-:root[data-theme="snowy"] .dropdown button:hover {
-  background: #e2f6fa;
-}
-
-:root[data-theme="snowy"] .mods-page::-webkit-scrollbar-thumb,
-:root[data-theme="snowy"] .utility-page-scroll::-webkit-scrollbar-thumb {
-  background: #48bad0;
-}
-
 /* The Home dashboard is a fixed-height dashboard; its content stays visible. */
 .main-content:has(.bottom-play) .page-transition {
   overflow: hidden;
@@ -2267,98 +1938,12 @@ p, span, strong, small, label {
   color: #929dbd;
 }
 
-/* Snowy theme buttons: every button remains white with readable cyan text. */
-:root[data-theme="snowy"] .app-shell button {
-  color: #087f9d !important;
-  background: #ffffff !important;
-  border: 1px solid #b8e1eb !important;
-  box-shadow: 0 3px 10px #4b9fb015, inset 0 1px 0 #ffffff !important;
-  text-shadow: none !important;
-}
-
-:root[data-theme="snowy"] .app-shell button:hover:not(:disabled) {
-  color: #05647e !important;
-  background: #ffffff !important;
-  border-color: #75c9dc !important;
-  box-shadow: 0 4px 14px #399eb52a, inset 0 0 0 1px #d9f3f8 !important;
-}
-
-:root[data-theme="snowy"] .app-shell button:active:not(:disabled) {
-  color: #05647e !important;
-  background: #ffffff !important;
-  transform: translateY(1px);
-}
-
-:root[data-theme="snowy"] .app-shell button:disabled {
-  color: #78aab7 !important;
-  background: #ffffff !important;
-  border-color: #d4eaf0 !important;
-  opacity: .58;
-}
-
-:root[data-theme="snowy"] .app-shell button :is(svg, span) {
-  color: inherit !important;
-}
-
-:root[data-theme="snowy"] .mods-subnav {
-  background: #eaf8fc;
-  border-color: #b8e1eb;
-}
-
-:root[data-theme="snowy"] .mods-subnav-button.active {
-  background: #ffffff !important;
-  border-color: #58bdd2 !important;
-  box-shadow: 0 0 0 2px #d8f3f8 !important;
-}
-
-:root[data-theme="snowy"] .installed-mod-entry {
-  background: #ffffffd9;
-  border-color: #b8e1eb;
-  color: #087f9d;
-}
-
-:root[data-theme="snowy"] .installed-mod-icon {
-  background: #e8f8fc;
-  color: #087f9d;
-}
-
-:root[data-theme="snowy"] .install-progress-backdrop {
-  background: #d7f0f7b8;
-}
-
-:root[data-theme="snowy"] .install-progress-card {
-  border-color: #a9dce9;
-  background: linear-gradient(150deg, #ffffff, #eaf8fc);
-  box-shadow: 0 24px 90px #4c9fb52e;
-  color: #087f9d;
-}
-
-:root[data-theme="snowy"] .install-progress-message,
-:root[data-theme="snowy"] .install-progress-meta {
-  color: #478fa3;
-}
-
-:root[data-theme="snowy"] .install-progress-meta strong {
-  color: #05647e;
-}
-
-:root[data-theme="snowy"] .install-progress-hint {
-  color: #6397a4;
-}
-
-:root[data-theme="snowy"] .install-progress-track {
-  border-color: #b8e1eb;
-  background: #e6f5f9;
-}
-
 
 /* Cleaner, consistent selection controls */
 .app-shell select { appearance:none; -webkit-appearance:none; min-height:36px; padding:8px 38px 8px 12px; border:1px solid #ffffff20; border-radius:10px; outline:none; background-color:#11162a; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23aeb9d8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; color:#e1e5fa; box-shadow:inset 0 1px 0 #ffffff08,0 2px 8px #00000012; transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease; cursor:pointer; }
 .app-shell select:hover { border-color:color-mix(in srgb,var(--accent-color) 55%,#ffffff22); background-color:#171d35; }
 .app-shell select:focus-visible { border-color:var(--accent-color); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-color) 22%,transparent); }
 .app-shell select option { padding:9px 12px; background:#11162a; color:#e1e5fa; }
-:root[data-theme="snowy"] .app-shell select { color:#087f9d !important; background-color:#fff !important; border:1px solid #b8e1eb !important; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23087f9d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
-:root[data-theme="snowy"] .app-shell select option { background:#fff; color:#087f9d; }
 :root[data-language="ar"] { font-family:"Noto Sans Arabic","Noto Naskh Arabic",Tahoma,Arial,sans-serif; }
 :root[data-language="ar"] *, :root[data-language="ar"] *::before, :root[data-language="ar"] *::after { font-family:"Noto Sans Arabic","Noto Naskh Arabic",Tahoma,Arial,sans-serif !important; }
 :root[data-language="ar"] .app-shell { direction:rtl; }
@@ -2379,10 +1964,6 @@ p, span, strong, small, label {
 .update-download { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 16px; border-radius:9px; text-decoration:none; background:var(--accent-color); color:#101326; font-weight:700; }
 .update-download.secondary { background:#ffffff12; color:inherit; border:1px solid #ffffff22; }
 .update-message { color:#aeb8d8; line-height:1.7; }
-:root[data-theme="snowy"] .update-release-card { background:#ffffffdf; border-color:#b9e6f2; color:#087f9d; }
-:root[data-theme="snowy"] .update-version { background:#effaff; border-color:#c6e8ef; }
-:root[data-theme="snowy"] .update-message { color:#478fa3; }
-:root[data-theme="snowy"] .update-download { background:#ffffff; color:#087f9d; border:1px solid #b8e1eb; }
 
 
 /* Direct instance sharing */
@@ -2411,14 +1992,6 @@ p, span, strong, small, label {
 .share-footer { display: flex; justify-content: flex-end; margin-top: 14px; }
 .share-spinner { animation: share-spin .9s linear infinite; }
 @keyframes share-spin { to { transform: rotate(360deg); } }
-
-[data-theme="snowy"] .share-description,
-[data-theme="snowy"] .share-code-panel p,
-[data-theme="snowy"] .share-incoming-card p,
-[data-theme="snowy"] .share-transfer p { color: #5b6380; }
-[data-theme="snowy"] .share-code { color: #202744; }
-[data-theme="snowy"] .share-code-entry input { background: #f8faff; color: #202744; border-color: #cbd3e8; }
-[data-theme="snowy"] .share-incoming-card h4 { color: #202744; }
 
 
 /* M4 v0.1.6 appearance refinements */
@@ -2453,23 +2026,6 @@ p, span, strong, small, label {
 }
 :root[data-theme="dark"] .galaxy-background { opacity: 0 !important; }
 
-:root[data-theme="snowy"] body { background: #dce9ee; color: #167b91; }
-:root[data-theme="snowy"] .app-shell {
-  background:
-    radial-gradient(ellipse at 12% 0%, #f3f8fa 0%, transparent 45%),
-    radial-gradient(ellipse at 88% 18%, #dce9ed 0%, transparent 42%),
-    linear-gradient(145deg, #edf3f5, #dce8ec);
-  color: #167b91;
-}
-:root[data-theme="snowy"] .topbar,
-:root[data-theme="snowy"] .instance-rail { background: #e8f0f3ed; border-color: #c2d5dc; }
-:root[data-theme="snowy"] .info-card,
-:root[data-theme="snowy"] .bottom-play,
-:root[data-theme="snowy"] .settings-card,
-:root[data-theme="snowy"] .modal,
-:root[data-theme="snowy"] .dropdown { background: #e9f1f4ed; border-color: #c5d8df; }
-:root[data-theme="snowy"] .galaxy-background { opacity: .07; filter: saturate(.25) brightness(1.1); }
-
 .settings-card input[type="number"] {
   min-height: 40px;
   padding: 0 13px;
@@ -2485,12 +2041,6 @@ p, span, strong, small, label {
   outline: none;
   border-color: var(--accent-color);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent), inset 0 1px 3px #0005;
-}
-:root[data-theme="snowy"] .settings-card input[type="number"] {
-  background: linear-gradient(180deg, #f5f8f9, #e7eef1);
-  color: #176d80;
-  border-color: #c1d2d8;
-  box-shadow: inset 0 1px 2px #3453;
 }
 :root[data-theme="dark"] .settings-card input[type="number"] {
   background: #090909;
@@ -2525,12 +2075,6 @@ p, span, strong, small, label {
   outline: none; border-color: var(--accent-color);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 18%, transparent), inset 0 1px 2px #0004;
 }
-:root[data-theme="snowy"] .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
-:root[data-theme="snowy"] .settings-card select, :root[data-theme="snowy"] .settings-card textarea {
-  background: linear-gradient(180deg, #f7fafb, #eaf1f3); color: #174e5d;
-  border-color: #bfd1d8; box-shadow: inset 0 1px 2px #3452;
-}
-:root[data-theme="snowy"] .settings-card input::placeholder, :root[data-theme="snowy"] .settings-card textarea::placeholder { color: #6d8992; }
 :root[data-theme="dark"] .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
 :root[data-theme="dark"] .settings-card select, :root[data-theme="dark"] .settings-card textarea {
   background: linear-gradient(180deg, #101010, #080808); color: #fff; border-color: #343434;
@@ -2595,23 +2139,6 @@ p, span, strong, small, label {
 :root[data-theme="dark"] .app-shell ::placeholder { color: #888 !important; }
 :root[data-theme="dark"] .galaxy-background { opacity: 0 !important; }
 
-/* Snowy selects use a custom cyan chevron so the native arrow never clashes. */
-:root[data-theme="snowy"] .app-shell select {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  color: #176d80 !important;
-  background-color: #fff !important;
-  border: 1px solid #bfd5dc !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23176d80' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 13px center !important;
-  padding-right: 38px !important;
-}
-:root[data-theme="snowy"] .app-shell select option {
-  background: #fff !important;
-  color: #176d80 !important;
-}
-
 /* More legible text fields across the launcher, not only in Settings. */
 .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
 .app-shell textarea {
@@ -2630,15 +2157,6 @@ p, span, strong, small, label {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent), inset 0 1px 2px #0004;
 }
 .app-shell input::placeholder, .app-shell textarea::placeholder { color: #8995ad; opacity: .9; }
-:root[data-theme="snowy"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
-:root[data-theme="snowy"] .app-shell textarea {
-  color: #174e5d !important;
-  background: linear-gradient(180deg, #fff, #f0f6f8) !important;
-  border-color: #bfd5dc !important;
-  box-shadow: inset 0 1px 2px #3452, 0 1px 0 #fff !important;
-}
-:root[data-theme="snowy"] .app-shell input::placeholder,
-:root[data-theme="snowy"] .app-shell textarea::placeholder { color: #718f99 !important; }
 :root[data-theme="dark"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]),
 :root[data-theme="dark"] .app-shell textarea {
   color: #fff !important;
@@ -2689,17 +2207,7 @@ p, span, strong, small, label {
   object-fit: cover;
   display: block;
 }
-:root[data-theme="snowy"] .project-gallery a { border-color: #bfd5dc; }
-
-:root[data-theme="dark"] .project-title-button,
-:root[data-theme="snowy"] .project-title-button {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
 :root[data-theme="dark"] .project-title-button { color: #fff !important; }
-:root[data-theme="snowy"] .project-title-button { color: #176d80 !important; }
 
 
 /* M4 0.1.8 — compact selection controls and consistent theme reskins. */
@@ -2854,24 +2362,6 @@ p, span, strong, small, label {
   box-shadow: 0 0 9px #fff9 !important;
 }
 
-/* Snowy: exactly one chevron; compact controls keep their labels vertically centered. */
-:root[data-theme="snowy"] .app-shell select {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  min-height: 36px;
-  height: 36px;
-  line-height: 1.2;
-  padding: 0 36px 0 12px !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23176d80' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 12px center !important;
-  background-size: 12px 12px !important;
-}
-:root[data-theme="snowy"] .app-shell select option {
-  background: #fff !important;
-  color: #176d80 !important;
-}
-
 /* M4 0.1.10 — compact controls, Snowy galaxy reskin and cursor-reactive stars. */
 :root { --star-shift-x:0px; --star-shift-y:0px; }
 .galaxy-stars { will-change:transform; transition:transform 180ms ease-out; }
@@ -2897,25 +2387,6 @@ p, span, strong, small, label {
 .memory-slider-ticks { display:flex; justify-content:space-between; gap:3px; margin-top:8px; color:var(--accent-color); font-size:7px; line-height:1; }
 .memory-slider-ticks span { position:relative; padding-top:7px; white-space:nowrap; }
 .memory-slider-ticks span::before { content:""; position:absolute; top:0; left:50%; width:1px; height:5px; background:var(--accent-color); opacity:.8; }
-:root[data-theme="snowy"] { color-scheme:light; --accent-color:#00a9c7; }
-:root[data-theme="snowy"] body,:root[data-theme="snowy"] .app-shell { color:#008da9!important; background:radial-gradient(ellipse at 72% 12%,#d8edf1 0%,transparent 43%),radial-gradient(ellipse at 12% 88%,#d4e4e9 0%,transparent 42%),linear-gradient(135deg,#e8edef 0%,#dce5e8 48%,#eef2f3 100%)!important; }
-:root[data-theme="snowy"] .galaxy-background { opacity:.72!important; filter:saturate(.7) brightness(1.12)!important; }
-:root[data-theme="snowy"] .nebula-one { background:#9bcbd5!important; opacity:.42!important; }
-:root[data-theme="snowy"] .nebula-two { background:#9ebac4!important; opacity:.34!important; }
-:root[data-theme="snowy"] .stars-one,:root[data-theme="snowy"] .stars-two,:root[data-theme="snowy"] .instance-banner::before { filter:none!important; opacity:.78!important; }
-:root[data-theme="snowy"] .stars-one { background-image:radial-gradient(1px 1px at 20px 30px,#fff 99%,transparent),radial-gradient(1px 1px at 90px 80px,#fff 99%,transparent),radial-gradient(1px 1px at 160px 40px,#bff6ff 99%,transparent),radial-gradient(1px 1px at 220px 120px,#fff 99%,transparent),radial-gradient(1px 1px at 280px 20px,#fff 99%,transparent)!important; }
-:root[data-theme="snowy"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window,.update-release-card,.update-version,.share-modal,.install-progress-card,.instance-item.selected,.modal-note,.share-incoming-card,.share-code-panel,.hero-card.instance-banner,.instance-banner,.project-download-modal) { background-color:#e5ebedeb!important; border-color:#a9d8e0!important; color:#008da9!important; }
-:root[data-theme="snowy"] .app-shell .hero-card.instance-banner { background:radial-gradient(ellipse at 76% 50%,#8bd9e650,transparent 48%),radial-gradient(ellipse at 14% 12%,#b2dfe933,transparent 52%),linear-gradient(115deg,#e6edef 0%,#d5e2e6 56%,#eaf0f1 100%)!important; box-shadow:0 18px 60px #7baab333,inset 0 0 55px #ffffff66!important; }
-:root[data-theme="snowy"] .app-shell :is(h1,h2,h3,h4,h5,h6,p,span,strong,small,label,a,li,.eyebrow,.info-label,.section-title,.page-heading,.brand,.nav-item,.instance-item,.play-instance,.share-description,.share-status,.update-message,.banner-copy p,.banner-copy h2,.brand-byline,.rail-footer,.rail-settings-button,.placeholder-page) { color:#008da9!important; }
-:root[data-theme="snowy"] .app-shell :is(button,.primary-button,.secondary-button,.icon-button,.more-button,.play-button,.update-download,.nav-item.active,.rail-settings-button) { color:#008da9!important; background:linear-gradient(180deg,#edf2f3,#dce6e9)!important; border:1px solid #a9d8e0!important; box-shadow:inset 0 1px 0 #ffffffb0,0 3px 10px #729ba022!important; }
-:root[data-theme="snowy"] .app-shell button:hover:not(:disabled) { color:#007b95!important; background:linear-gradient(180deg,#f5fbfc,#d7e9ed)!important; border-color:#00a9c7!important; }
-:root[data-theme="snowy"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),:root[data-theme="snowy"] .app-shell select,:root[data-theme="snowy"] .app-shell textarea { color:#008da9!important; background-color:#edf2f3!important; border-color:#a9d8e0!important; }
-:root[data-theme="snowy"] .app-shell select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23008da9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important; background-position:right 9px center!important; background-size:10px 10px!important; }
-:root[data-theme="snowy"] .app-shell select option { color:#008da9!important; background:#e5ebed!important; }
-:root[data-theme="snowy"] .app-shell ::placeholder { color:#5b9eaa!important; opacity:1; }
-:root[data-theme="snowy"] .app-shell .banner-planet { background:radial-gradient(circle at 30% 28%,#fff,#a5dbe3 30%,#69b8c7 68%,#3c8e9f 100%)!important; box-shadow:0 0 45px #00a9c755,inset -12px -12px 25px #397f8d66!important; }
-:root[data-theme="snowy"] .app-shell .banner-orbit { border-color:#00a9c788!important; }
-:root[data-theme="snowy"] .app-shell .selected-dot { background:#00a9c7!important; box-shadow:0 0 9px #00a9c788!important; }
 
 
 /* v0.1.11: low-cost, seamless star drift and theme-aware glass surfaces. */
@@ -2959,12 +2430,6 @@ p, span, strong, small, label {
   border-right-color: #ffffff1c;
 }
 
-:root[data-theme="snowy"] .instance-rail {
-  background: rgba(242, 251, 255, .64);
-  border-right-color: #9dd9e7bb;
-  box-shadow: inset -1px 0 0 #ffffff90;
-}
-
 /* Keep the M4 brand mark identical regardless of the selected theme. */
 .brand-mark {
   background:
@@ -2988,20 +2453,6 @@ p, span, strong, small, label {
 .brand-star-three { color: #dce4ff; }
 .brand-sparkle { color: #6678bd; }
 
-:root[data-theme="snowy"] .brand-mark {
-  background:
-    radial-gradient(circle at 25% 15%, #ffffff 0%, transparent 42%),
-    linear-gradient(145deg, #f5f7ff, #b7c4f4 55%, #8999d5);
-  color: #101326;
-  box-shadow: 0 0 18px #aeb9e955, 0 0 38px #849aff22, inset 0 1px 2px #ffffff;
-}
-
-:root[data-theme="snowy"] .brand-mark-text { color: #171b35 !important; }
-:root[data-theme="snowy"] .brand-star-one { color: #ffffff !important; }
-:root[data-theme="snowy"] .brand-star-two { color: #c5d0ff !important; }
-:root[data-theme="snowy"] .brand-star-three { color: #dce4ff !important; }
-:root[data-theme="snowy"] .brand-sparkle { color: #6678bd !important; }
-
 /* Notifications use the active theme's surface, border, accent and readable text. */
 .toast {
   max-width: min(430px, calc(100vw - 32px));
@@ -3024,16 +2475,6 @@ p, span, strong, small, label {
 :root[data-theme="dark"] .toast span { color: #f2f4fa; }
 :root[data-theme="dark"] .toast button { color: var(--accent-color); }
 
-:root[data-theme="snowy"] .toast {
-  background: rgba(247, 253, 255, .96);
-  border-color: #91d9e8;
-  color: #087f9d;
-  box-shadow: 0 10px 30px #4ba9bf2b;
-}
-
-:root[data-theme="snowy"] .toast span { color: #087f9d !important; }
-:root[data-theme="snowy"] .toast button { color: #079fbd !important; }
-
 @media (prefers-reduced-motion: reduce) {
   .stars-one,
   .stars-two {
@@ -3047,7 +2488,6 @@ p, span, strong, small, label {
 .galaxy-stars {
   backface-visibility: hidden;
   will-change: background-position;
-  transform: none !important;
   background-repeat: repeat !important;
 }
 
@@ -3081,12 +2521,6 @@ p, span, strong, small, label {
   border-right-color: #ffffff1c;
 }
 
-:root[data-theme="snowy"] .instance-rail {
-  background: rgba(229, 235, 237, .54) !important;
-  border-right-color: #a9d8e0bb;
-  box-shadow: inset -1px 0 0 #ffffff80;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .stars-one,
   .stars-two {
@@ -3100,12 +2534,6 @@ p, span, strong, small, label {
 :root[data-theme="dark"] .app-shell .instance-rail {
   background: rgba(7, 7, 7, .46) !important;
   border-right-color: #ffffff1c !important;
-}
-
-:root[data-theme="snowy"] .app-shell .instance-rail {
-  background: rgba(229, 235, 237, .54) !important;
-  border-right-color: #a9d8e0bb !important;
-  box-shadow: inset -1px 0 0 #ffffff80 !important;
 }
 
 
@@ -3128,12 +2556,37 @@ p, span, strong, small, label {
   backdrop-filter: blur(12px) saturate(120%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
 }
-:root[data-theme="snowy"] body .app-shell .workspace > aside.instance-rail {
-  background: rgba(229, 235, 237, .38) !important;
-  background-color: rgba(229, 235, 237, .38) !important;
-  background-image: none !important;
-  border-right-color: #a9d8e0bb !important;
-  box-shadow: inset -1px 0 0 #ffffff80 !important;
-  backdrop-filter: blur(12px) saturate(125%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(125%) !important;
+
+/* 1.2.3: GPU-composited, tiled star drift. */
+.galaxy-stars { inset:-240px -420px; backface-visibility:hidden; contain:paint; will-change:transform; background-repeat:repeat; }
+.stars-one { animation:m4-stars-transform-near 110s linear infinite !important; }
+.stars-two { animation:m4-stars-transform-far 165s linear infinite !important; }
+@keyframes m4-stars-transform-near { from { transform:translate3d(0,0,0); } to { transform:translate3d(-320px,-170px,0); } }
+@keyframes m4-stars-transform-far { from { transform:translate3d(0,0,0); } to { transform:translate3d(-380px,-230px,0); } }
+@media (prefers-reduced-motion:reduce) { .galaxy-stars { animation:none !important; will-change:auto; } .stars-one,.stars-two { animation:none !important; transform:none !important; } }
+/* Optional Liquid Glass; disabled by default to preserve performance on older GPUs. */
+:root[data-glass="true"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window,.update-release-card,.update-version,.share-modal,.install-progress-card,.modal-note,.share-incoming-card,.share-code-panel,.instance-banner,.project-download-modal,.toast) {
+ background-color:rgba(18,23,43,.48) !important; border-color:rgba(220,230,255,.20) !important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 12px 34px rgba(0,0,0,.16);
+ -webkit-backdrop-filter:blur(18px) saturate(145%); backdrop-filter:blur(18px) saturate(145%);
+}
+:root[data-glass="true"] .app-shell :is(button,.primary-button,.secondary-button,.icon-button,.more-button,.play-button,.update-download,.rail-settings-button) {
+ background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(170,190,255,.07)) !important;
+ border:1px solid rgba(235,242,255,.24) !important; color:#edf2ff;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 18px rgba(0,0,0,.12);
+ -webkit-backdrop-filter:blur(14px) saturate(150%); backdrop-filter:blur(14px) saturate(150%);
+}
+:root[data-glass="true"] .app-shell :is(button,.primary-button,.secondary-button,.icon-button,.more-button,.play-button,.update-download):hover:not(:disabled) {
+ background:linear-gradient(135deg,rgba(255,255,255,.25),rgba(170,190,255,.13)) !important;
+ border-color:color-mix(in srgb,var(--accent-color) 55%,white) !important;
+}
+:root[data-glass="true"] .app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+:root[data-glass="true"] .app-shell select,:root[data-glass="true"] .app-shell textarea {
+ background:rgba(12,16,32,.48) !important; border-color:rgba(220,230,255,.20) !important;
+ -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+}
+@media (prefers-reduced-transparency:reduce) {
+ :root[data-glass="true"] .app-shell :is(.topbar,.instance-rail,.info-card,.settings-card,.modal,.dropdown,.bottom-play,.console-window) {
+  -webkit-backdrop-filter:none; backdrop-filter:none; background-color:rgba(18,23,43,.92) !important;
+ }
 }
