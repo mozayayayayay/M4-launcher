@@ -45,6 +45,8 @@ pub struct LauncherSettings {
     pub resolution_height: u32,
     pub fullscreen: bool,
     pub theme: String,
+    #[serde(default)]
+    pub liquid_glass: bool,
     pub accent_color: String,
     pub language: String,
 }
@@ -58,6 +60,7 @@ impl Default for LauncherSettings {
             resolution_height: 720,
             fullscreen: false,
             theme: "galaxy".into(),
+            liquid_glass: false,
             accent_color: "#9B8CFF".into(),
             language: "en".into(),
         }
@@ -85,7 +88,7 @@ pub fn save_launcher_settings(
         return Err("The selected resolution is outside the supported range.".into());
     }
 
-    if !["galaxy", "dark", "snowy"].contains(&settings.theme.as_str()) {
+    if !["galaxy", "dark"].contains(&settings.theme.as_str()) {
         return Err("Invalid launcher theme.".into());
     }
 
