@@ -110,12 +110,11 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.14
+            M0Z4 Launcher v1.2.15
 
-            - Restored the Update now and Check again controls in the Updates section.
-            - Restored the Clear console and Modrinth Search action buttons.
-            - Kept the action buttons text-first across themes, with subtle surfaces on hover or keyboard focus.
-            - Preserved the Galaxy background, moving stars, Midnight button styling, and existing layouts.
+            - Starts maximized with the instance sidebar collapsed by default.
+            - Improves Arabic readability with a dedicated Arabic font and larger UI text.
+            - Adds a lightweight, theme-colored idle screen after Minecraft starts and restores M4 when the game exits.
             - Builds for Linux DEB and Windows setup.
           releaseDraft: false
           prerelease: false
