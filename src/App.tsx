@@ -208,15 +208,11 @@ export default function App() {
     const stopLocalization = installLocalization();
     let active = true;
 
-    invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
+    invoke<{ language?: string }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
-        document.documentElement.dataset.theme = settings.theme === "dark" ? "dark" : "galaxy";
+        document.documentElement.dataset.theme = "m4";
         document.documentElement.dataset.language = settings.language === "ar" ? "ar" : "en";
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          settings.accentColor ?? "#9B8CFF"
-        );
       })
       .catch(() => {
         // Keep the built-in appearance if saved settings cannot be loaded.
@@ -937,13 +933,6 @@ export default function App() {
 
   return (
     <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
-      <div className="galaxy-background" aria-hidden="true">
-        <div className="galaxy-nebula nebula-one" />
-        <div className="galaxy-nebula nebula-two" />
-        <div className="galaxy-stars stars-one" />
-        <div className="galaxy-stars stars-two" />
-      </div>
-
       <input
         ref={iconInputRef}
         type="file"
