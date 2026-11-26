@@ -112,7 +112,7 @@ jobs:
           releaseBody: |
             M0Z4 Launcher v3.2.3
 
-This release restores the stable pre-2.2.3 launcher codebase as a higher-version signed update, so existing installations can detect and install it.
+            This release restores the stable pre-2.2.3 launcher codebase as a higher-version signed update, so existing installations can detect and install it.
 
             - Adds optional Discord Rich Presence for M4 navigation and active Minecraft instances.
             - Fixes Galaxy theme button text contrast.
