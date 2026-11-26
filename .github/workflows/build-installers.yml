@@ -110,11 +110,11 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v1.2.16
+            M0Z4 Launcher v2.2.3
 
-            - Adds optional Discord Rich Presence for M4 navigation and active Minecraft instances.
-            - Fixes Galaxy theme button text contrast.
-            - Preserves the existing idle screen, updater, and Windows/Linux installer support.
+            - Complete graphite UI refresh with restrained, low-overhead motion.
+            - Preserves Minecraft instance, Modrinth, sharing, settings, account, and updater workflows.
+            - Linux DEB and Windows NSIS installers.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

@@ -2933,3 +2933,89 @@ p, span, strong, small, label {
   margin: 0;
   accent-color: var(--accent-color);
 }
+
+
+/* M4 2.2.3 — graphite redesign: low-cost surfaces, restrained motion */
+:root{font-family:Inter,"Segoe UI",Arial,sans-serif!important;font-size:13px;color:#e7e7e9;--accent-color:#e7e7e9;--m4-bg:#171719;--m4-panel:#202023;--m4-raised:#29292d;--m4-line:#36363b;--m4-muted:#99999f}
+*{font-family:Inter,"Segoe UI",Arial,sans-serif!important;box-sizing:border-box}
+body,.app-shell{background:#171719!important;color:#e7e7e9!important}
+.app-shell{background:linear-gradient(135deg,#19191b,#151517 65%,#1c1c1f)!important}
+.galaxy-background,.galaxy-nebula,.galaxy-stars{display:none!important}
+.topbar,.sidebar,.instance-rail,.main-content,.content-area{background-color:#19191b!important;backdrop-filter:none!important}
+.topbar{border-bottom:1px solid #303034!important}
+:is(.nav-item,.instance-item,.info-card,.modal,.project-download-modal,.install-progress-card,.console-window,.installed-mod-entry,.mods-subnav-button,.sidebar-toggle,.icon-button,.secondary-button,.rail-settings-button,.more-button,.instance-card){background:#222225!important;border:1px solid #343438!important;color:#e8e8ea!important;box-shadow:none!important;border-radius:12px!important;transition:background-color .16s ease,border-color .16s ease,transform .16s ease!important}
+:is(.nav-item,.instance-item,.info-card,.modal,.installed-mod-entry,.mods-subnav-button,.icon-button,.secondary-button,.rail-settings-button,.more-button):hover{background:#2a2a2e!important;border-color:#48484d!important}
+:is(.primary-button,.play-button,.update-download){background:#e7e7e9!important;color:#161618!important;border:1px solid #f4f4f5!important;border-radius:12px!important;box-shadow:none!important;transition:transform .16s ease,background-color .16s ease!important}
+:is(.primary-button,.play-button,.update-download):hover{background:#fff!important;transform:translateY(-1px)}
+:is(input,select,textarea){background:#222225!important;border:1px solid #3a3a3f!important;color:#ededee!important;border-radius:10px!important;outline:none!important}
+:is(input,select,textarea):focus{border-color:#85858b!important;box-shadow:0 0 0 2px #ffffff10!important}
+:is(.eyebrow,small,.muted,.subtitle){color:#a0a0a6!important}
+:is(.modal-backdrop,.install-progress-backdrop){background:#0009!important;backdrop-filter:blur(4px)!important}
+.modal{background:#1d1d20!important;border-color:#3b3b40!important}
+.toast{background:#29292d!important;border:1px solid #44444a!important;color:#fff!important;border-radius:12px!important;box-shadow:0 12px 32px #0005!important}
+*{scrollbar-color:#46464b #1a1a1c;scrollbar-width:thin}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+
+/* M4 2.2.3 — refined graphite component system */
+:root {
+  color-scheme: dark;
+  --m4-bg: #151517;
+  --m4-surface: #1d1d20;
+  --m4-surface-raised: #252529;
+  --m4-surface-hover: #2c2c31;
+  --m4-border: #34343a;
+  --m4-border-strong: #48484f;
+  --m4-text: #ededf0;
+  --m4-muted: #a0a0a8;
+  --m4-accent: #f1f1f3;
+  --m4-radius: 14px;
+  --m4-shadow: 0 14px 38px #0005;
+  font-family: Inter, "Segoe UI", sans-serif !important;
+  font-size: 13px !important;
+  color: var(--m4-text) !important;
+}
+* { box-sizing: border-box; }
+body, .app-shell { background: #151517 !important; color: var(--m4-text) !important; }
+.app-shell { background: radial-gradient(ellipse at 50% -30%, #29292e 0%, transparent 58%), #151517 !important; }
+.galaxy-background, .galaxy-nebula, .galaxy-stars { display: none !important; }
+.topbar { height: 66px !important; padding: 0 24px !important; gap: 28px !important; background: #19191bf2 !important; border-bottom: 1px solid var(--m4-border) !important; backdrop-filter: none !important; }
+.brand { min-width: 170px !important; gap: 10px !important; }
+.brand-mark { width: 40px !important; height: 40px !important; border-radius: 12px !important; background: linear-gradient(145deg,#f5f5f6,#a9a9ae) !important; color: #161618 !important; box-shadow: 0 4px 16px #0004 !important; }
+.brand-mark-text { color: #171719 !important; }
+.brand-star, .brand-sparkle { display: none !important; }
+.brand-byline { color: #898990 !important; font-size: 9px !important; }
+.top-nav { gap: 5px !important; }
+.nav-item { height: 38px !important; padding: 0 13px !important; border-radius: 10px !important; color: #a8a8af !important; font-size: 12px !important; transition: background .16s ease,color .16s ease !important; }
+.nav-item:hover { background: #ffffff0b !important; color: #fff !important; transform: none !important; }
+.nav-item.active, .nav-item[aria-current="page"] { background: #303035 !important; color: #fff !important; box-shadow: inset 0 0 0 1px #ffffff12 !important; }
+.sidebar, .instance-rail { background: #19191b !important; border-color: var(--m4-border) !important; backdrop-filter: none !important; }
+.main-content, .content-area { background: transparent !important; }
+.page-heading { margin-bottom: 24px !important; }
+.page-heading h1, .section-title h2 { letter-spacing: -.035em !important; font-weight: 650 !important; }
+.page-heading p, .section-title p, .subtitle, .muted { color: var(--m4-muted) !important; }
+:is(.info-card,.instance-card,.instance-item,.installed-mod-entry,.console-window,.modal,.project-download-modal,.install-progress-card,.settings-card,.account-card,.update-card) {
+  background: var(--m4-surface) !important;
+  border: 1px solid var(--m4-border) !important;
+  border-radius: var(--m4-radius) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+:is(.info-card,.instance-card,.instance-item,.installed-mod-entry,.mods-subnav-button,.secondary-button,.icon-button,.rail-settings-button,.more-button,.sidebar-toggle,.nav-item) { transition: background-color .16s ease,border-color .16s ease,color .16s ease !important; }
+:is(.info-card,.instance-card,.instance-item,.installed-mod-entry):hover { border-color: var(--m4-border-strong) !important; }
+:is(.secondary-button,.icon-button,.rail-settings-button,.more-button,.sidebar-toggle,.mods-subnav-button) { background: #242428 !important; color: #e5e5e8 !important; border: 1px solid #39393f !important; border-radius: 10px !important; }
+:is(.secondary-button,.icon-button,.rail-settings-button,.more-button,.sidebar-toggle,.mods-subnav-button):hover { background: #303035 !important; border-color: #505057 !important; }
+:is(.primary-button,.play-button,.update-download) { background: #ededf0 !important; color: #171719 !important; border: 1px solid #fff !important; border-radius: 11px !important; box-shadow: none !important; font-weight: 650 !important; transition: transform .16s ease,background .16s ease !important; }
+:is(.primary-button,.play-button,.update-download):hover { background: #fff !important; transform: translateY(-1px) !important; }
+:is(input,select,textarea) { background: #202024 !important; border: 1px solid #3a3a40 !important; color: #eee !important; border-radius: 10px !important; min-height: 38px; }
+:is(input,select,textarea):focus { outline: none !important; border-color: #85858d !important; box-shadow: 0 0 0 3px #ffffff0d !important; }
+label { color: #d6d6da !important; }
+.eyebrow { color: #a2a2a9 !important; letter-spacing: .12em !important; }
+.modal-backdrop, .install-progress-backdrop { background: #000a !important; backdrop-filter: blur(3px) !important; }
+.modal { background: #1c1c20 !important; border-color: #414147 !important; box-shadow: var(--m4-shadow) !important; }
+.toast { background: #29292e !important; border: 1px solid #45454c !important; border-radius: 12px !important; box-shadow: var(--m4-shadow) !important; }
+.console-window { background: #111113 !important; }
+* { scrollbar-width: thin; scrollbar-color: #48484f #19191b; }
+button:focus-visible, a:focus-visible { outline: 2px solid #c8c8ce !important; outline-offset: 2px; }
+@media (max-width: 900px) { .topbar { padding: 0 14px !important; gap: 12px !important; } .brand { min-width: auto !important; } .nav-item { padding: 0 9px !important; } }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
