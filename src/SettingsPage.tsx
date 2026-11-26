@@ -280,7 +280,8 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
   }
 
   return (
-    <div className="settings-page settings-v4">\n      <div className="settings-intro"><span className="settings-intro-icon"><SlidersHorizontal size={18} /></span><div><span className="eyebrow">M4 CONTROL CENTER</span><p>Everything that matters, in one place.</p></div></div>
+    <div className="settings-page settings-v4">
+      <div className="settings-intro"><span className="settings-intro-icon"><SlidersHorizontal size={18} /></span><div><span className="eyebrow">M4 CONTROL CENTER</span><p>Everything that matters, in one place.</p></div></div>
       <div className="page-heading">
         <div>
           <div className="eyebrow">CONFIGURATION</div>
