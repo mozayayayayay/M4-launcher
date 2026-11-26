@@ -3084,3 +3084,45 @@ input::placeholder, textarea::placeholder { color:#778574!important; }
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
 }
+
+
+/* Consistent surfaces for every feature area, not just the Home dashboard. */
+.modal-backdrop,.install-progress-backdrop,.share-modal-backdrop { background:#090d0bdc; backdrop-filter:none; -webkit-backdrop-filter:none; }
+.modal,.project-download-modal,.share-modal,.install-progress-card {
+  background:#1a211c!important; border:1px solid var(--m4-border-strong)!important;
+  border-radius:13px!important; box-shadow:0 20px 60px #0009!important; color:var(--m4-text)!important;
+}
+.modal-heading { border-bottom:1px solid var(--m4-border); }
+.modal-heading h3,.modal h2,.modal h3,.share-incoming-card h4 { color:#f0f5eb!important; }
+.modal label,.share-description,.share-status,.share-security-note,.share-trust { color:#c0cdbb; }
+.modal-note,.share-description,.share-code-panel p,.share-incoming-card p,.share-transfer p { color:#9eac98!important; }
+.project-download-modal { scrollbar-color:#60734d #171e19; }
+.project-title-button { color:#eff4eb; }
+.project-description { color:#b7c3b2; }
+.project-gallery a { border-color:var(--m4-border); border-radius:9px; }
+.installed-mod-row { border-color:var(--m4-border); color:#d5dfd0; }
+.installed-mod-entry { padding:10px 11px; border:1px solid var(--m4-border); border-radius:9px; background:#1a211c; }
+.installed-mod-file,.installed-mod-file > span { color:#b4c1ae; }
+.installed-mod-icon { border-radius:8px; background:#2b3828; color:var(--m4-accent); }
+.installed-mods-empty,.installed-mods-empty > p { color:var(--m4-muted); }
+.console-window { background:#0d120f!important; border:1px solid var(--m4-border)!important; border-radius:10px; color:#dce8d4!important; }
+.console-line { color:#d0ddc8; }
+.console-stderr { color:#f18d83; }
+.console-system { color:#c8f169; }
+.update-release-card { border:1px solid var(--m4-border)!important; border-radius:13px!important; background:var(--m4-panel)!important; }
+.update-version { border:1px solid var(--m4-border)!important; border-radius:10px!important; background:#1d251f!important; }
+.update-version strong { color:#f0f5eb; }
+.update-download { background:var(--m4-accent)!important; color:var(--m4-accent-ink)!important; border-radius:8px; }
+.update-download.secondary { background:#252f25!important; color:#dce6d7!important; border:1px solid var(--m4-border)!important; }
+.update-message { color:var(--m4-muted)!important; }
+.share-code-panel,.share-incoming-card { border:1px solid var(--m4-border)!important; background:#202820!important; border-radius:10px!important; }
+.share-code { color:var(--m4-accent)!important; }
+.share-code-entry input { background:#111713!important; border-color:var(--m4-border-strong)!important; color:#eff4eb!important; }
+.share-progress-track,.install-progress-track { background:#303a32!important; }
+.share-progress-fill,.install-progress-fill { background:var(--m4-accent)!important; }
+.install-progress-card h2,.install-progress-card strong { color:#f0f5eb!important; }
+.install-progress-message,.install-progress-hint { color:var(--m4-muted)!important; }
+.install-progress-symbol { background:#2b3828!important; color:var(--m4-accent)!important; }
+.mods-subnav-button { border-bottom-color:transparent; }
+.mods-count { background:#2b3828; color:var(--m4-accent); border-radius:20px; }
+.toast { background:#202820!important; border-color:var(--m4-border-strong)!important; color:#eff4eb!important; }
