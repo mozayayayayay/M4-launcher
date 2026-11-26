@@ -16,9 +16,6 @@ type LauncherSettings = {
   resolutionWidth: number;
   resolutionHeight: number;
   fullscreen: boolean;
-  theme: string;
-  accentColor: string;
-  closeLauncherOnGameStart: boolean;
   language: "en" | "ar";
   discordRpcEnabled: boolean;
 };
@@ -35,9 +32,6 @@ const defaults: LauncherSettings = {
   resolutionWidth: 1280,
   resolutionHeight: 720,
   fullscreen: false,
-  theme: "m4",
-  accentColor: "#c8f169",
-  closeLauncherOnGameStart: false,
   language: "en",
   discordRpcEnabled: false,
 };
@@ -93,7 +87,7 @@ const optionChoices: Record<
 };
 
 function normalizeSettings(saved?: Partial<LauncherSettings> | null): LauncherSettings {
-  return { ...defaults, ...saved, theme: "m4", accentColor: "#c8f169", closeLauncherOnGameStart: false, javaPath: saved?.javaPath ?? "" };
+  return { ...defaults, ...saved, javaPath: saved?.javaPath ?? "" };
 }
 
 export default function SettingsPage({ selected, onNotice, onDiscordPresenceChange }: Props) {
