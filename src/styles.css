@@ -3116,3 +3116,18 @@ input::placeholder, textarea::placeholder { color:#778574!important; }
 .mods-subnav-button { border-bottom-color:transparent; }
 .mods-count { background:#2b3828; color:var(--m4-accent); border-radius:20px; }
 .toast { background:#202820!important; border-color:var(--m4-border-strong)!important; color:#eff4eb!important; }
+
+@font-face {
+  font-family: "Pricedown";
+  src: url("/fonts/Pricedown.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+:root { --m4-display-font: "Pricedown", Impact, "Arial Black", sans-serif; }
+.brand-mark-text, .page-heading h1, .placeholder-page h1,
+.banner-copy h2, .settings-intro .eyebrow, .section-title h3 {
+  font-family: var(--m4-display-font) !important;
+  font-weight: 900;
+  letter-spacing: .025em;
+}
