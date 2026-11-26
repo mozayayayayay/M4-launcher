@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Save, RotateCcw, SlidersHorizontal, Gamepad2, Monitor, Cpu } from "lucide-react";
+import { Save, RotateCcw, Palette } from "lucide-react";
 
 type Instance = {
   id: string;
@@ -16,6 +16,8 @@ type LauncherSettings = {
   resolutionWidth: number;
   resolutionHeight: number;
   fullscreen: boolean;
+  theme: "galaxy" | "dark";
+  accentColor: string;
   language: "en" | "ar";
   discordRpcEnabled: boolean;
 };
@@ -32,6 +34,8 @@ const defaults: LauncherSettings = {
   resolutionWidth: 1280,
   resolutionHeight: 720,
   fullscreen: false,
+  theme: "galaxy",
+  accentColor: "#9B8CFF",
   language: "en",
   discordRpcEnabled: false,
 };
@@ -86,8 +90,16 @@ const optionChoices: Record<
   ]
 };
 
-function normalizeSettings(saved?: Partial<LauncherSettings> | null): LauncherSettings {
-  return { ...defaults, ...saved, javaPath: saved?.javaPath ?? "" };
+function normalizeSettings(
+  saved?: Partial<LauncherSettings> | null
+): LauncherSettings {
+  const savedTheme = (saved as { theme?: string } | null | undefined)?.theme;
+  return {
+    ...defaults,
+    ...saved,
+    theme: savedTheme === "dark" ? "dark" : "galaxy",
+    javaPath: saved?.javaPath ?? ""
+  };
 }
 
 export default function SettingsPage({ selected, onNotice, onDiscordPresenceChange }: Props) {
@@ -101,8 +113,13 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--accent-color",
+      settings.accentColor
+    );
+    document.documentElement.dataset.theme = settings.theme;
     document.documentElement.dataset.language = settings.language;
-  }, [settings.language]);
+  }, [settings.accentColor, settings.theme, settings.language]);
 
   useEffect(() => {
     let active = true;
@@ -280,8 +297,7 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
   }
 
   return (
-    <div className="settings-page settings-v4">
-      <div className="settings-intro"><span className="settings-intro-icon"><SlidersHorizontal size={18} /></span><div><span className="eyebrow">M4 CONTROL CENTER</span><p>Everything that matters, in one place.</p></div></div>
+    <div className="settings-page">
       <div className="page-heading">
         <div>
           <div className="eyebrow">CONFIGURATION</div>
@@ -312,15 +328,55 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
         <div className="info-card">Loading settings...</div>
       ) : (
         <>
-          <div className="section-title"><div><h3>Language</h3><p>Choose the language used throughout M4.</p></div></div>
-          <div className="info-card settings-card"><label>Language
-            <select value={settings.language} onChange={(event) => updateSetting("language", event.target.value as LauncherSettings["language"])}><option value="en">English</option><option value="ar">العربية</option></select>
-            <small>One consistent M4 appearance, with your preferred language.</small>
-          </label></div>
+          <div className="section-title">
+            <div>
+              <h3>Appearance</h3>
+              <p>Customize the launcher's theme and accent color.</p>
+            </div>
+            <Palette size={17} />
+          </div>
+
+          <div className="info-card settings-card">
+            <label>
+              Language
+              <select value={settings.language} onChange={(event) => updateSetting("language", event.target.value as LauncherSettings["language"])}>
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+              </select>
+              <small>Choose the language used throughout M0Z4.</small>
+            </label>
+
+            <label>
+              Theme
+              <select
+                value={settings.theme}
+                onChange={(event) =>
+                  updateSetting(
+                    "theme",
+                    event.target.value as LauncherSettings["theme"]
+                  )
+                }
+              >
+                <option value="galaxy">Galaxy</option>
+                <option value="dark">Midnight</option>
+              </select>
+            </label>
+
+            <label>
+              Accent color
+              <input
+                type="color"
+                value={settings.accentColor}
+                onChange={(event) =>
+                  updateSetting("accentColor", event.target.value.toUpperCase())
+                }
+              />
+            </label>
+          </div>
 
           <div className="section-title">
             <div>
-              <h3><Gamepad2 size={16} /> Discord Rich Presence</h3>
+              <h3>Discord Rich Presence</h3>
               <p>Show what you are doing in M4 or Minecraft on your Discord profile.</p>
             </div>
           </div>
@@ -339,7 +395,7 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
 
           <div className="section-title">
             <div>
-              <h3><Cpu size={16} /> Java & memory</h3>
+              <h3>Java & memory</h3>
               <p>Configure the resources intended for Minecraft.</p>
             </div>
           </div>
@@ -380,7 +436,7 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
 
           <div className="section-title">
             <div>
-              <h3><Monitor size={16} /> Game window</h3>
+              <h3>Game window</h3>
               <p>Preferred Minecraft window settings.</p>
             </div>
           </div>
@@ -437,7 +493,7 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
 
           <div className="section-title">
             <div>
-              <h3><Gamepad2 size={16} /> Minecraft settings</h3>
+              <h3>Minecraft settings</h3>
               <p>
                 {selected
                   ? `Settings for ${selected.name}.`
