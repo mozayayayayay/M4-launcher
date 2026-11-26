@@ -44,6 +44,8 @@ pub struct LauncherSettings {
     pub resolution_width: u32,
     pub resolution_height: u32,
     pub fullscreen: bool,
+    pub theme: String,
+    pub accent_color: String,
     pub language: String,
     pub discord_rpc_enabled: bool,
 }
@@ -56,6 +58,8 @@ impl Default for LauncherSettings {
             resolution_width: 1280,
             resolution_height: 720,
             fullscreen: false,
+            theme: "galaxy".into(),
+            accent_color: "#9B8CFF".into(),
             language: "en".into(),
             discord_rpc_enabled: false,
         }
@@ -83,8 +87,21 @@ pub fn save_launcher_settings(
         return Err("The selected resolution is outside the supported range.".into());
     }
 
+    if !["galaxy", "dark"].contains(&settings.theme.as_str()) {
+        return Err("Invalid launcher theme.".into());
+    }
+
     if !["en", "ar"].contains(&settings.language.as_str()) {
         return Err("Invalid launcher language.".into());
+    }
+
+    let color = settings.accent_color.trim();
+
+    if color.len() != 7
+        || !color.starts_with('#')
+        || !color[1..].chars().all(|c| c.is_ascii_hexdigit())
+    {
+        return Err("Accent color must be a hex color such as #9B8CFF.".into());
     }
 
     if settings.java_path.contains('\0') {
