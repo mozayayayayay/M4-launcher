@@ -2933,3 +2933,25 @@ p, span, strong, small, label {
   margin: 0;
   accent-color: var(--accent-color);
 }
+
+
+/* M4 2.2.3 — graphite redesign: low-cost surfaces, restrained motion */
+:root{font-family:Inter,"Segoe UI",Arial,sans-serif!important;font-size:13px;color:#e7e7e9;--accent-color:#e7e7e9;--m4-bg:#171719;--m4-panel:#202023;--m4-raised:#29292d;--m4-line:#36363b;--m4-muted:#99999f}
+*{font-family:Inter,"Segoe UI",Arial,sans-serif!important;box-sizing:border-box}
+body,.app-shell{background:#171719!important;color:#e7e7e9!important}
+.app-shell{background:linear-gradient(135deg,#19191b,#151517 65%,#1c1c1f)!important}
+.galaxy-background,.galaxy-nebula,.galaxy-stars{display:none!important}
+.topbar,.sidebar,.instance-rail,.main-content,.content-area{background-color:#19191b!important;backdrop-filter:none!important}
+.topbar{border-bottom:1px solid #303034!important}
+:is(.nav-item,.instance-item,.info-card,.modal,.project-download-modal,.install-progress-card,.console-window,.installed-mod-entry,.mods-subnav-button,.sidebar-toggle,.icon-button,.secondary-button,.rail-settings-button,.more-button,.instance-card){background:#222225!important;border:1px solid #343438!important;color:#e8e8ea!important;box-shadow:none!important;border-radius:12px!important;transition:background-color .16s ease,border-color .16s ease,transform .16s ease!important}
+:is(.nav-item,.instance-item,.info-card,.modal,.installed-mod-entry,.mods-subnav-button,.icon-button,.secondary-button,.rail-settings-button,.more-button):hover{background:#2a2a2e!important;border-color:#48484d!important}
+:is(.primary-button,.play-button,.update-download){background:#e7e7e9!important;color:#161618!important;border:1px solid #f4f4f5!important;border-radius:12px!important;box-shadow:none!important;transition:transform .16s ease,background-color .16s ease!important}
+:is(.primary-button,.play-button,.update-download):hover{background:#fff!important;transform:translateY(-1px)}
+:is(input,select,textarea){background:#222225!important;border:1px solid #3a3a3f!important;color:#ededee!important;border-radius:10px!important;outline:none!important}
+:is(input,select,textarea):focus{border-color:#85858b!important;box-shadow:0 0 0 2px #ffffff10!important}
+:is(.eyebrow,small,.muted,.subtitle){color:#a0a0a6!important}
+:is(.modal-backdrop,.install-progress-backdrop){background:#0009!important;backdrop-filter:blur(4px)!important}
+.modal{background:#1d1d20!important;border-color:#3b3b40!important}
+.toast{background:#29292d!important;border:1px solid #44444a!important;color:#fff!important;border-radius:12px!important;box-shadow:0 12px 32px #0005!important}
+*{scrollbar-color:#46464b #1a1a1c;scrollbar-width:thin}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
