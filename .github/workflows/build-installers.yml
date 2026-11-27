@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: m0z4-installer-release
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -61,16 +61,16 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
 
-      - name: Verify direct-sharing signaling service
+      - name: Check optional direct-sharing signaling service
         env:
           M4_SIGNALING_URL: ${{ vars.M4_SIGNALING_URL }}
         shell: bash
         run: |
           if [[ -z "${M4_SIGNALING_URL}" ]]; then
-            echo "::error::Set the M4_SIGNALING_URL repository variable to the deployed signaling Worker URL before releasing a new version."
-            exit 1
+            echo "::warning::M4_SIGNALING_URL is not configured. The launcher will build normally; direct instance sharing will show its not-configured message until the service is deployed."
+          else
+            curl --fail --silent --show-error "${M4_SIGNALING_URL%/}/health"
           fi
-          curl --fail --silent --show-error "${M4_SIGNALING_URL%/}/health"
 
       - name: Validate frontend
         env:
