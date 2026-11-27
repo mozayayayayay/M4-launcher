@@ -110,13 +110,13 @@ jobs:
           tagName: v__VERSION__
           releaseName: M0Z4 Launcher v__VERSION__
           releaseBody: |
-            M0Z4 Launcher v4.0.2
+            M0Z4 Launcher v__VERSION__
 
-            This release rolls back the 4.0.1 redesign and restores the previous stable launcher interface as a higher-version signed update.
-
-            - Adds optional Discord Rich Presence for M4 navigation and active Minecraft instances.
-            - Restores the established Galaxy launcher appearance and theme controls.
-            - Preserves the existing idle screen, updater, and Windows/Linux installer support.
+            - Updated to a fixed monochrome black-and-grey design.
+            - Rounded, unified controls and cards across launcher sections.
+            - Removed visible theme and accent-color selection.
+            - Responsive layout refinements.
+            - Preserves existing launcher features and updater support.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
