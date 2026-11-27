@@ -1,0 +1,22 @@
+/* M4 4.1.2 monochrome responsive redesign override */
+:root,html,body,#root,.app-shell { color:#ededed!important; background:#090909!important; --accent-color:#d7d7d7!important; }
+* { border-radius:18px; }
+button,select,input,textarea { border-radius:14px!important; transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease!important; }
+button:hover:not(:disabled) { transform:translateY(-1px); }
+button:active:not(:disabled) { transform:scale(.98); }
+.app-shell { background:radial-gradient(ellipse at 80% 0%,#252525 0%,transparent 45%),linear-gradient(140deg,#080808,#111111 55%,#050505)!important; }
+.galaxy-background,.galaxy-nebula,.galaxy-stars { opacity:0!important; display:none!important; }
+.sidebar,.sidebar-inner,.left-sidebar,.nav-sidebar { background:#0c0c0c!important; border-color:#292929!important; }
+[class*="card"],.info-card,.instance-card,.project-card,.update-release-card,.settings-card,.modal-content,.modal,.dialog { background:linear-gradient(145deg,#171717,#101010)!important; border:1px solid #2c2c2c!important; box-shadow:0 10px 30px #0005!important; }
+[class*="active"],.active,.selected { border-color:#a0a0a0!important; }
+.primary-button,.update-download,.update-download.restored-action-button,.update-download:not(a),.update-actions button { background:linear-gradient(120deg,#e2e2e2,#a8a8a8)!important; color:#080808!important; border:1px solid #ededed!important; }
+.secondary-button,.restored-action-button,.icon-button { background:#202020!important; color:#e6e6e6!important; border:1px solid #373737!important; }
+input,select,textarea { background:#161616!important; color:#e6e6e6!important; border:1px solid #333!important; }
+input:focus,select:focus,textarea:focus,button:focus-visible { outline:2px solid #aaa!important; outline-offset:2px!important; }
+.page-heading h1,.section-title h3 { color:#f3f3f3!important; }
+.eyebrow,.muted,.caption,small { color:#a0a0a0!important; }
+/* Hide theme/accent controls; the launcher is now a fixed monochrome design. */
+.settings-page .section-title:first-of-type + .info-card.settings-card label:nth-of-type(2),
+.settings-page .section-title:first-of-type + .info-card.settings-card label:nth-of-type(3) { display:none!important; }
+@media (max-width:1100px) { .instance-grid,.instances-grid,.mod-grid,.modpack-grid { grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important; } }
+@media (max-width:850px) { .page-heading { flex-wrap:wrap!important; gap:12px!important; } .instance-grid,.instances-grid,.mod-grid,.modpack-grid { grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important; } }
