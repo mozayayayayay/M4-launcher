@@ -12,6 +12,7 @@
   --radius: 18px;
 }
 html, body, #root { background: #090909 !important; color: var(--text) !important; }
+* { font-family: Inter, "Segoe UI", system-ui, sans-serif !important; }
 body, button, input, select, textarea { font-family: Inter, "Segoe UI", system-ui, sans-serif !important; }
 * { box-sizing: border-box; }
 .app-shell {
