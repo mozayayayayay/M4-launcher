@@ -34,8 +34,8 @@ const defaults: LauncherSettings = {
   resolutionWidth: 1280,
   resolutionHeight: 720,
   fullscreen: false,
-  theme: "galaxy",
-  accentColor: "#9B8CFF",
+  theme: "dark",
+  accentColor: "#D6D6D6",
   language: "en",
   discordRpcEnabled: false,
 };
