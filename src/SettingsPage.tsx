@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Save, RotateCcw, Palette } from "lucide-react";
+import { Save, RotateCcw } from "lucide-react";
 
 type Instance = {
   id: string;
@@ -93,11 +93,11 @@ const optionChoices: Record<
 function normalizeSettings(
   saved?: Partial<LauncherSettings> | null
 ): LauncherSettings {
-  const savedTheme = (saved as { theme?: string } | null | undefined)?.theme;
   return {
     ...defaults,
     ...saved,
-    theme: savedTheme === "dark" ? "dark" : "galaxy",
+    theme: "dark",
+    accentColor: "#D6D6D6",
     javaPath: saved?.javaPath ?? ""
   };
 }
@@ -115,9 +115,9 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--accent-color",
-      settings.accentColor
+      "#D6D6D6"
     );
-    document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.dataset.theme = "dark";
     document.documentElement.dataset.language = settings.language;
   }, [settings.accentColor, settings.theme, settings.language]);
 
@@ -331,9 +331,8 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
           <div className="section-title">
             <div>
               <h3>Appearance</h3>
-              <p>Customize the launcher's theme and accent color.</p>
+              <p>M4 uses a unified monochrome appearance.</p>
             </div>
-            <Palette size={17} />
           </div>
 
           <div className="info-card settings-card">
@@ -346,32 +345,6 @@ export default function SettingsPage({ selected, onNotice, onDiscordPresenceChan
               <small>Choose the language used throughout M0Z4.</small>
             </label>
 
-            <label>
-              Theme
-              <select
-                value={settings.theme}
-                onChange={(event) =>
-                  updateSetting(
-                    "theme",
-                    event.target.value as LauncherSettings["theme"]
-                  )
-                }
-              >
-                <option value="galaxy">Galaxy</option>
-                <option value="dark">Midnight</option>
-              </select>
-            </label>
-
-            <label>
-              Accent color
-              <input
-                type="color"
-                value={settings.accentColor}
-                onChange={(event) =>
-                  updateSetting("accentColor", event.target.value.toUpperCase())
-                }
-              />
-            </label>
           </div>
 
           <div className="section-title">
