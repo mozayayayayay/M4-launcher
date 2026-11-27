@@ -112,12 +112,12 @@ jobs:
           releaseBody: |
             M0Z4 Launcher v__VERSION__
 
-- Complete Fast Client-inspired interface redesign with a refined monochrome palette.
-- Rounded navigation, instance rail, cards, dialogs, and consistent controls.
-- Responsive layout refinements for narrower windows.
-- Removed theme and accent-color switching; appearance is now consistent.
-- Updated typography to a clean, modern system font stack.
-- Preserves existing launcher functionality and updater support.
+            - Complete Fast Client-inspired interface redesign with a refined monochrome palette.
+            - Rounded navigation, instance rail, cards, dialogs, and consistent controls.
+            - Responsive layout refinements for narrower windows.
+            - Removed theme and accent-color switching; appearance is now consistent.
+            - Updated typography to a clean, modern system font stack.
+            - Preserves existing launcher functionality and updater support.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
