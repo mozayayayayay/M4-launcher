@@ -208,18 +208,17 @@ export default function App() {
     const stopLocalization = installLocalization();
     let active = true;
 
-    invoke<{ theme?: string; accentColor?: string; language?: string }>("get_launcher_settings")
+    // M4 4.2.2 uses one fixed monochrome appearance. Saved legacy theme
+    // preferences must not re-enable the removed Galaxy/accent customization.
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.setProperty("--accent-color", "#D6D6D6");
+    invoke<{ language?: string }>("get_launcher_settings")
       .then((settings) => {
         if (!active) return;
-        document.documentElement.dataset.theme = settings.theme === "dark" ? "dark" : "galaxy";
         document.documentElement.dataset.language = settings.language === "ar" ? "ar" : "en";
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          settings.accentColor ?? "#9B8CFF"
-        );
       })
       .catch(() => {
-        // Keep the built-in appearance if saved settings cannot be loaded.
+        // Keep the built-in English language and monochrome appearance.
       });
 
     return () => {
